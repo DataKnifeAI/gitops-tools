@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: managed-tools
+
+resources:
+  - namespace.yaml
+  # Harbor deployment manifests will be added here
+  # Example structure:
+  # - harbor-core.yaml
+  # - harbor-database.yaml
+  # - harbor-redis.yaml
+  # - harbor-registry.yaml
+  # - harbor-jobservice.yaml
+  # - harbor-portal.yaml
+  # - harbor-chartmuseum.yaml
+  # - harbor-notary.yaml
+
+commonLabels:
+  app: harbor
+  managed-by: gitops
