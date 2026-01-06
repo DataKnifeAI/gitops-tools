@@ -2,6 +2,8 @@
 
 GitOps repository for deploying managed Kubernetes tools to the `nprd-apps` cluster.
 
+> **Note**: This project is built with [Cursor](https://cursor.sh) and Composer mode.
+
 ## Overview
 
 This repository contains Kubernetes manifests and configurations for deploying managed tools in a dedicated namespace on the `nprd-apps` cluster.
