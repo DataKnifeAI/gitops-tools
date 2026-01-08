@@ -21,3 +21,6 @@ secrets/
 *.crt
 *.csr
 certs/
+# Local environment files
+.env
+.env.local
