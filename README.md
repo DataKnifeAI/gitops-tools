@@ -17,10 +17,12 @@ This repository contains Kubernetes manifests and configurations for deploying m
 ```
 .
 ├── README.md
-├── .env.example          # Template for local credentials (copy to .env)
 ├── scripts/
 │   ├── create-harbor-secrets.sh    # Create Harbor credentials secret
 │   └── generate-wildcard-cert.sh   # Generate wildcard TLS certificate
+├── secrets/
+│   └── harbor/
+│       └── .env.example             # Template for Harbor credentials
 ├── harbor/
 │   └── namespace: nprd-apps/managed-tools
 └── ...
@@ -76,12 +78,12 @@ Create encrypted Kubernetes secrets for Harbor credentials:
 
 ```bash
 # 1. Copy the example file
-cp .env.example .env
+cp secrets/harbor/.env.example secrets/harbor/.env
 
 # 2. Edit .env with your actual passwords
-nano .env  # or vim .env
+nano secrets/harbor/.env  # or vim secrets/harbor/.env
 
-# 3. Create the secret (reads from .env automatically)
+# 3. Create the secret (reads from secrets/harbor/.env automatically)
 ./scripts/create-harbor-secrets.sh
 ```
 
