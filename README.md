@@ -124,13 +124,57 @@ kubectl create secret generic harbor-credentials \
 - Never commit actual passwords to git
 - Change default passwords in production
 
-### Step 3: Deploy via GitOps
+### Step 3: Deploy PostgreSQL Database
 
-Once secrets are created, Fleet will automatically deploy Harbor when:
+**⚠️ PostgreSQL Required Before Harbor Deployment**
+
+Harbor requires a PostgreSQL database to be deployed separately. According to the [Harbor HA Helm documentation](https://goharbor.io/docs/1.10/install-config/harbor-ha-helm/), Harbor does not deploy the database itself.
+
+**PostgreSQL Cluster Configuration:**
+
+This repository includes a [CloudNativePG](https://cloudnative-pg.io/docs/1.28/) PostgreSQL cluster configuration that will be deployed automatically by Fleet:
+
+- **Cluster Name**: `harbor-postgresql`
+- **Namespace**: `managed-tools`
+- **Database**: `registry`
+- **User**: `harbor`
+- **High Availability**: 2 instances (1 primary + 1 replica)
+
+The PostgreSQL cluster is defined in:
+- `harbor/base/postgresql-cluster.yaml` - Cluster resource
+- `harbor/base/postgresql-credentials.yaml` - Database credentials secret
+- `harbor/base/postgresql-database.yaml` - Database resource
+
+**Important**: Before deploying, ensure:
+
+1. **CloudNativePG operator is installed** in your cluster
+   ```bash
+   # Verify operator is installed
+   kubectl get crd clusters.postgresql.cnpg.io
+   ```
+
+2. **Update PostgreSQL credentials** in `harbor/base/postgresql-credentials.yaml`:
+   - Set a strong password for the `harbor` database user
+   - **This password must match** the `databasePassword` in your `harbor-credentials` secret
+
+3. **Storage class is available** (or remove `storageClass: ""` to use default)
+
+See `harbor/base/POSTGRESQL.md` for detailed documentation on the PostgreSQL cluster configuration.
+
+**Alternative: External PostgreSQL**
+
+If you prefer to use an external PostgreSQL instance:
+- Update `harbor/base/harbor-helmchart.yaml` to point to your external database
+- Remove the PostgreSQL cluster resources from `harbor/base/kustomization.yaml`
+
+### Step 4: Deploy via GitOps
+
+Once prerequisites are met, Fleet will automatically deploy Harbor when:
 1. The namespace `managed-tools` exists
 2. The TLS secret `wildcard-dataknife-net-tls` exists
-3. The credentials secret `harbor-credentials` exists
-4. Fleet syncs the GitRepo
+3. **PostgreSQL database is deployed and accessible**
+4. The credentials secret `harbor-credentials` exists with database connection details
+5. Fleet syncs the GitRepo
 
 Monitor deployment:
 ```bash

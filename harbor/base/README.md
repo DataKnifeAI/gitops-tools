@@ -151,12 +151,60 @@ For initial setup, you can use these defaults (CHANGE IN PRODUCTION!):
 - Harbor Admin Password: Set via secret
 - Database Password: Set via secret
 
+## Database Requirements
+
+**⚠️ PostgreSQL Database Required**
+
+Harbor requires a PostgreSQL database to be deployed separately. According to the [Harbor HA Helm documentation](https://goharbor.io/docs/1.10/install-config/harbor-ha-helm/), Harbor does not handle the deployment of the database for high availability scenarios.
+
+### PostgreSQL Operator (Recommended)
+
+A PostgreSQL operator is being set up to manage the database deployment. This is the recommended approach for production deployments.
+
+**Once the PostgreSQL operator is deployed:**
+
+1. Create a PostgreSQL instance using the operator
+2. Note the service name and connection details
+3. Update `harbor-helmchart.yaml` with the correct database connection:
+   ```yaml
+   database:
+     type: external
+     external:
+       host: <postgresql-service-name>  # e.g., harbor-postgresql
+       port: 5432
+       username: <database-username>
+       existingSecret: harbor-credentials
+       secretKey: databasePassword
+       database: registry
+   ```
+
+**Database Requirements:**
+- PostgreSQL 9.6+ or 10+ (or as supported by the operator)
+- Database named `registry` (or as configured)
+- Database user with appropriate permissions
+- Database password stored in `harbor-credentials` secret as `databasePassword`
+
+### External PostgreSQL (Alternative)
+
+If not using the PostgreSQL operator, you can use an external PostgreSQL service:
+
+**Configuration:**
+- Update `harbor-helmchart.yaml` with external database connection details:
+  - `database.type: external`
+  - `database.external.host`: PostgreSQL service hostname
+  - `database.external.port`: PostgreSQL port (default: 5432)
+  - `database.external.username`: Database username
+  - `database.external.password`: Database password (or use `existingSecret`)
+  - `database.external.database`: Database name (default: `registry`)
+
 ## Deployment
 
 The Harbor HelmChart will be deployed automatically by Fleet when:
 1. The namespace `managed-tools` exists
 2. The TLS secret `wildcard-dataknife-net-tls` exists
-3. Fleet syncs the GitRepo
+3. **PostgreSQL database is deployed and accessible** (via operator or external service)
+4. The credentials secret `harbor-credentials` exists with database connection details
+5. Fleet syncs the GitRepo
 
 Monitor deployment:
 ```bash

@@ -6,11 +6,17 @@ metadata:
 spec:
   valuesContent: |-
     # This file is optional and can be used for cluster-specific overrides
-    # Passwords are now handled via existingSecret in harbor-helmchart.yaml
-    # No passwords should be stored in this file
+    # Database configuration is in harbor-helmchart.yaml using external database
     # 
-    # If you need to override other Harbor values for this cluster,
+    # If you need to override database connection details for this cluster,
     # add them here. For example:
+    # database:
+    #   external:
+    #     host: postgresql-operator-managed-service
+    #     port: 5432
+    #     username: harbor_user
+    #
+    # Or override other Harbor values:
     # core:
     #   replicas: 2
     # persistence:

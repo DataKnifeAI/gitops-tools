@@ -36,16 +36,26 @@ spec:
     # Secret key name for admin password (must match the key in the secret)
     secretKey: harborAdminPassword
     # Database configuration
+    # NOTE: PostgreSQL must be deployed separately (via operator or external service)
+    # Harbor does not deploy the database - see README.md for details
     database:
-      type: postgresql
-      internal:
-        # Database password - MUST be set via harbor-credentials secret
-        # Using existingSecret to reference the harbor-credentials secret
-        # The secret must contain the key 'databasePassword'
+      type: external
+      external:
+        # PostgreSQL connection details
+        # CloudNativePG creates services: <cluster-name>-rw (read-write), <cluster-name>-ro (read-only)
+        # Use the -rw service to connect to the primary instance
+        # Alternatively, use the pooler service if PgBouncer is enabled: <cluster-name>-pooler-rw
+        host: harbor-postgresql-rw  # CloudNativePG service for read-write connections to primary
+        port: 5432
+        username: harbor  # Database owner user (created by CloudNativePG from bootstrap.initdb.owner)
+        # Note: Password is read from harbor-credentials secret (databasePassword key)
+        # This password must match the password in harbor-postgresql-credentials secret
+        # Password via existingSecret (recommended)
         existingSecret: harbor-credentials
-        # Secret key name for database password (must match the key in the secret)
         secretKey: databasePassword
         database: "registry"
+        # SSL mode: disable, require, verify-ca, verify-full
+        sslmode: disable
         maxIdleConns: 50
         maxOpenConns: 100
     redis:

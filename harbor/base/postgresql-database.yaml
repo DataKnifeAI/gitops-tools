@@ -1,0 +1,16 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: registry
+  namespace: managed-tools
+  labels:
+    app: harbor
+    component: database
+    managed-by: gitops
+spec:
+  # Reference to the CloudNativePG cluster
+  cluster: harbor-postgresql
+  # Database name (already created by bootstrap.initdb, but this ensures it's managed)
+  name: registry
+  # Owner of the database (created by bootstrap.initdb.owner)
+  owner: harbor
