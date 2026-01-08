@@ -13,8 +13,17 @@ Thumbs.db
 *.tmp
 *.log
 
-# Secrets (if any are stored locally)
-secrets/
+# Secrets directory - ignore actual secret files but allow .example files
+secrets/**/*.env
+secrets/**/*.key
+secrets/**/*.pem
+secrets/**/*.crt
+secrets/**/*.csr
+secrets/**/*.secret.yaml
+!secrets/**/*.example
+!secrets/**/README.md
+
+# Other secret files
 *.secret.yaml
 *.key
 *.pem
