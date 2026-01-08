@@ -1,0 +1,55 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: actions-runner-controller
+  namespace: managed-cicd
+spec:
+  chart: actions-runner-controller
+  repo: https://actions-runner-controller.github.io/actions-runner-controller
+  targetNamespace: actions-runner-system
+  valuesContent: |-
+    # GitHub Actions Runner Controller configuration
+    # See: https://github.com/actions/actions-runner-controller
+    
+    # Authentication configuration
+    # NOTE: You must create a GitHub Personal Access Token (PAT) or GitHub App
+    # and store it in a secret before deploying. See README.md for details.
+    authSecret:
+      # Set to true if you want the Helm chart to create the secret
+      # You'll need to provide github_token via --set or values file
+      create: false
+      # Secret name (default: actions-runner-controller)
+      name: actions-runner-controller
+      # GitHub token key in secret (default: github_token)
+      github_token: ""
+    
+    # Controller configuration
+    controller:
+      replicaCount: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    
+    # Metrics configuration
+    metrics:
+      enabled: false
+    
+    # Service account configuration
+    serviceAccount:
+      create: true
+      annotations: {}
+    
+    # RBAC configuration
+    rbac:
+      create: true
+    
+    # Image configuration
+    image:
+      repository: summerwind/actions-runner-controller
+      # Use latest stable version - update as needed
+      tag: ""
+      pullPolicy: IfNotPresent

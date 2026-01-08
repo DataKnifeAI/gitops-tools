@@ -1,0 +1,109 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: gitlab-runner
+  namespace: managed-cicd
+spec:
+  chart: gitlab-runner
+  repo: https://charts.gitlab.io
+  targetNamespace: managed-cicd
+  valuesContent: |-
+    # GitLab Runner configuration
+    # See: https://docs.gitlab.com/runner/install/kubernetes/
+    
+    # GitLab URL - update with your GitLab instance URL
+    gitlabUrl: https://gitlab.com
+    # Or for self-hosted: https://gitlab.example.com
+    
+    # Runner registration token
+    # NOTE: You must create a secret with the runner token before deploying
+    # See README.md for details on obtaining and storing the token
+    # Option 1: Set token directly (not recommended for production)
+    # runnerRegistrationToken: ""
+    # Option 2: Use existing secret (recommended)
+    # The secret should contain the key 'runner-registration-token'
+    runnerRegistrationToken: ""
+    # To use a secret, you can also set it via Fleet HelmChartConfig or
+    # update this value directly with the token from the secret
+    
+    # RBAC configuration
+    rbac:
+      create: true
+    
+    # Service account configuration
+    serviceAccount:
+      create: true
+    
+    # Runner configuration
+    runners:
+      # Kubernetes executor configuration
+      config: |
+        [[runners]]
+          [runners.kubernetes]
+            namespace = "{{.Release.Namespace}}"
+            image = "alpine:latest"
+            privileged = false
+            cpu_limit = "1"
+            memory_limit = "2Gi"
+            cpu_request = "100m"
+            memory_request = "128Mi"
+      
+      # Runner tags (for group-level runner)
+      tags: "kubernetes,managed-cicd"
+      
+      # Runner executor
+      executor: kubernetes
+      
+      # Builds configuration
+      builds:
+        # CPU limit for build pods
+        cpuLimit: "1"
+        # Memory limit for build pods
+        memoryLimit: "2Gi"
+        # CPU request for build pods
+        cpuRequest: "100m"
+        # Memory request for build pods
+        memoryRequest: "128Mi"
+      
+      # Service configuration
+      service:
+        enabled: false
+      
+      # Cache configuration
+      cache:
+        # Use Kubernetes volume for cache
+        cacheType: "kubernetes"
+        cachePath: "/cache"
+        cacheShared: true
+    
+    # Resources for the runner pod
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    
+    # Metrics configuration
+    metrics:
+      enabled: false
+    
+    # Image configuration
+    image:
+      # GitLab Runner image
+      repository: gitlab/gitlab-runner
+      tag: ""
+      pullPolicy: IfNotPresent
+    
+    # Check interval for new jobs
+    checkInterval: 30
+    
+    # Concurrent job limit
+    # This controls how many jobs can run simultaneously
+    # Each job runs in a separate pod, so this effectively controls autoscaling
+    # Increase this value to allow more parallel jobs (more pods will be created)
+    concurrent: 4
+    
+    # Runner registration timeout
+    registrationTimeout: 180

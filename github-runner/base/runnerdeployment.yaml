@@ -1,0 +1,42 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: github-runner-deployment
+  namespace: managed-cicd
+spec:
+  # Initial replicas - will be managed by HorizontalRunnerAutoscaler
+  replicas: 1
+  template:
+    spec:
+      # Organization-level runner (available to all repos in org)
+      # This runner will be available to all projects in the organization
+      organization: <YOUR_GITHUB_ORG>
+      
+      # Alternative: Repository-level runner (attached to a specific repository)
+      # repository: <YOUR_GITHUB_ORG>/<YOUR_REPO>
+      
+      # Alternative: Enterprise-level runner (available across enterprise)
+      # enterprise: <YOUR_ENTERPRISE_NAME>
+      
+      # Runner labels (optional)
+      labels:
+        - self-hosted
+        - kubernetes
+        - linux
+      
+      # Docker image for runner
+      image: summerwind/actions-runner:latest
+      
+      # Resources for runner pod
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+      
+      # Environment variables (optional)
+      env:
+        - name: RUNNER_NAME
+          value: "kubernetes-runner"

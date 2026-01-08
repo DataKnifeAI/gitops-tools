@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: managed-cicd
+
+resources:
+  - github-runner-controller-helmchart.yaml
+  # RunnerDeployment and HorizontalRunnerAutoscaler
+  # Note: These require the controller to be running first
+  # If controller isn't ready, these will be created but won't work until controller is up
+  - runnerdeployment.yaml
+  - horizontalrunnerautoscaler.yaml
+
+commonLabels:
+  app: github-runner-controller
+  managed-by: gitops
