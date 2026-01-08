@@ -27,14 +27,10 @@ spec:
           # Note: TLS secret 'wildcard-dataknife-net-tls' must be created manually for internal DNS
           # Use the generate-wildcard-cert.sh script to create a cluster-wide wildcard certificate
     externalURL: https://harbor.dataknife.net
-    # Harbor admin password - MUST be set via harbor-credentials secret
-    # Create secret using: ./scripts/create-harbor-secrets.sh
-    # Or manually: kubectl create secret generic harbor-credentials -n managed-tools --from-literal=harborAdminPassword=<password>
-    # Using existingSecret to reference the harbor-credentials secret
-    # The secret must contain the key 'harborAdminPassword'
-    existingSecret: harbor-credentials
-    # Secret key name for admin password (must match the key in the secret)
-    secretKey: harborAdminPassword
+    # Harbor admin password - NOTE: Helm chart does NOT update existing admin passwords
+    # The default password is "Harbor12345" and works after initial deployment
+    # To change the password, use Harbor UI or API after deployment
+    # The existingSecret/secretKey configuration is removed as it doesn't work for existing deployments
     # Database configuration
     # NOTE: PostgreSQL must be deployed separately (via operator or external service)
     # Harbor does not deploy the database - see README.md for details

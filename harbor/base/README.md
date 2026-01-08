@@ -110,7 +110,6 @@ The Harbor HelmChart has been configured to use empty passwords by default. You 
 
 # Or create manually
 kubectl create secret generic harbor-credentials \
-  --from-literal=harborAdminPassword='<your-password>' \
   --from-literal=databasePassword='<your-db-password>' \
   -n managed-tools
 ```
@@ -125,8 +124,8 @@ No HelmChartConfig is required for passwords - just ensure the secret exists:
 
 # The Harbor HelmChart will automatically use the secret
 # The secret must contain these keys:
-#   - harborAdminPassword: Harbor admin password
 #   - databasePassword: PostgreSQL database password
+# Note: harborAdminPassword is NOT used - Harbor uses default password Harbor12345
 #   - redisPassword: Redis password (optional, can be empty)
 ```
 
@@ -138,7 +137,6 @@ kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/downloa
 
 # Create a SealedSecret from the regular secret
 kubectl create secret generic harbor-credentials \
-  --from-literal=harborAdminPassword='<password>' \
   --from-literal=databasePassword='<password>' \
   -n managed-tools \
   --dry-run=client -o yaml | kubectl seal -o yaml > harbor/base/harbor-credentials-sealed.yaml
@@ -148,8 +146,8 @@ kubectl create secret generic harbor-credentials \
 
 For initial setup, you can use these defaults (CHANGE IN PRODUCTION!):
 - Harbor Admin Username: `admin`
-- Harbor Admin Password: Set via secret
-- Database Password: Set via secret
+- Harbor Admin Password: `Harbor12345` (default, change via UI after first login)
+- Database Password: Set via `harbor-credentials` secret
 
 ## Database Requirements
 

@@ -63,11 +63,13 @@ The `harbor-postgresql-credentials` secret contains the password for the `harbor
    ```bash
    # The databasePassword must match the password in harbor-postgresql-credentials
    kubectl create secret generic harbor-credentials \
-     --from-literal=harborAdminPassword='<harbor-admin-password>' \
      --from-literal=databasePassword='<same-password-as-postgresql>' \
      --from-literal=redisPassword='' \
      -n managed-tools \
      --dry-run=client -o yaml | kubectl apply -f -
+   
+   # Note: Harbor admin password is NOT managed via this secret
+   # Harbor uses default password "Harbor12345" - change via UI after first login
    ```
 
 ## Deployment

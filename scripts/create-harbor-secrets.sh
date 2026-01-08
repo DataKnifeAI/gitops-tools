@@ -19,15 +19,8 @@ echo ""
 # Create namespace if it doesn't exist
 kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 
-# Get Harbor admin password from env or prompt
-if [ -z "${HARBOR_ADMIN_PASSWORD}" ]; then
-    read -sp "Enter Harbor admin password (default: Harbor12345): " HARBOR_PASSWORD
-    HARBOR_PASSWORD="${HARBOR_PASSWORD:-Harbor12345}"
-else
-    HARBOR_PASSWORD="${HARBOR_ADMIN_PASSWORD}"
-    echo "Using Harbor admin password from .env"
-fi
-echo ""
+# Note: Harbor admin password is NOT managed via secrets
+# Harbor uses default password "Harbor12345" - change via UI after first login
 
 # Get database password from env or prompt
 if [ -z "${HARBOR_DATABASE_PASSWORD}" ]; then
@@ -49,9 +42,8 @@ else
 fi
 echo ""
 
-# Create the secret
+# Create the secret (admin password not included - Harbor uses default Harbor12345)
 kubectl create secret generic "${SECRET_NAME}" \
-  --from-literal=harborAdminPassword="${HARBOR_PASSWORD}" \
   --from-literal=databasePassword="${DB_PASSWORD}" \
   --from-literal=redisPassword="${REDIS_PASSWORD}" \
   -n "${NAMESPACE}" \
@@ -60,4 +52,7 @@ kubectl create secret generic "${SECRET_NAME}" \
 echo ""
 echo "✓ Harbor credentials secret '${SECRET_NAME}' created/updated in namespace '${NAMESPACE}'"
 echo ""
-echo "⚠️  Remember to change these passwords in production!"
+echo "⚠️  Note: Harbor admin password is NOT managed via this secret"
+echo "   Default password is 'Harbor12345' - change via Harbor UI after first login"
+echo ""
+echo "⚠️  Remember to change database/Redis passwords in production!"

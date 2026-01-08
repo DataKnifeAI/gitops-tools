@@ -113,13 +113,13 @@ kubectl apply -f secrets/harbor/harbor-credentials.yaml
 
 ```bash
 kubectl create secret generic harbor-credentials \
-  --from-literal=harborAdminPassword='<your-password>' \
   --from-literal=databasePassword='<your-db-password>' \
   --from-literal=redisPassword='<optional-redis-password>' \
   -n managed-tools
 ```
 
 **⚠️ Important:**
+- Harbor admin password is NOT managed via secrets - use default `Harbor12345` and change via UI
 - The `.env` file is gitignored and will never be committed
 - Never commit actual passwords to git
 - Change default passwords in production

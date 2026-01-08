@@ -24,7 +24,7 @@ if ! kubectl get secret "${SECRET_NAME}" -n "${NAMESPACE}" >/dev/null 2>&1; then
 fi
 
 # Extract passwords from secret
-HARBOR_PASSWORD=$(kubectl get secret "${SECRET_NAME}" -n "${NAMESPACE}" -o jsonpath='{.data.harborAdminPassword}' | base64 -d)
+# Note: Harbor admin password is NOT managed via secrets - Harbor uses default Harbor12345
 DB_PASSWORD=$(kubectl get secret "${SECRET_NAME}" -n "${NAMESPACE}" -o jsonpath='{.data.databasePassword}' | base64 -d)
 
 # Create temporary file with updated values
@@ -38,7 +38,7 @@ metadata:
 spec:
   valuesContent: |-
     # Passwords from harbor-credentials secret
-    harborAdminPassword: "${HARBOR_PASSWORD}"
+    # Note: Harbor admin password is NOT managed here - Harbor uses default Harbor12345
     database:
       internal:
         password: "${DB_PASSWORD}"
