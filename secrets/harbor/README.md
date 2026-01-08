@@ -1,30 +1,49 @@
 # Harbor Secrets
 
-This directory contains templates and scripts for managing Harbor secrets.
+This directory contains reference templates for Harbor secrets.
 
 ## Files
 
-- `.env.example` - Template for Harbor credentials (copy to `.env`)
+- `harbor-credentials.yaml.example` - Template for Harbor credentials secret
 
-## Setup
+## Usage
 
-1. Copy the example file:
+### Option 1: Using .env file (Recommended)
+
+1. Copy the example file at project root:
    ```bash
-   cp secrets/harbor/.env.example secrets/harbor/.env
+   cp .env.example .env
    ```
 
 2. Edit `.env` with your actual passwords:
    ```bash
-   nano secrets/harbor/.env
+   nano .env
    ```
 
-3. Create the Kubernetes secret:
+3. Create the secret using the script:
    ```bash
    ./scripts/create-harbor-secrets.sh
    ```
 
+### Option 2: Using YAML file
+
+1. Copy the example file:
+   ```bash
+   cp secrets/harbor/harbor-credentials.yaml.example secrets/harbor/harbor-credentials.yaml
+   ```
+
+2. Edit `secrets/harbor/harbor-credentials.yaml` with your actual passwords:
+   ```bash
+   nano secrets/harbor/harbor-credentials.yaml
+   ```
+
+3. Apply the secret:
+   ```bash
+   kubectl apply -f secrets/harbor/harbor-credentials.yaml
+   ```
+
 ## Important
 
-- The `.env` file is gitignored and will never be committed
+- The `.env` file and `harbor-credentials.yaml` (without .example) are gitignored
 - Never commit actual passwords to git
 - Change default passwords in production

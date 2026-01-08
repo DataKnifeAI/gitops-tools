@@ -17,12 +17,14 @@ This repository contains Kubernetes manifests and configurations for deploying m
 ```
 .
 ├── README.md
+├── .env.example                     # Template for Harbor credentials (copy to .env)
 ├── scripts/
 │   ├── create-harbor-secrets.sh    # Create Harbor credentials secret
 │   └── generate-wildcard-cert.sh   # Generate wildcard TLS certificate
 ├── secrets/
 │   └── harbor/
-│       └── .env.example             # Template for Harbor credentials
+│       ├── harbor-credentials.yaml.example  # YAML template for secrets (user reference)
+│       └── README.md               # Secrets directory documentation
 ├── harbor/
 │   └── namespace: nprd-apps/managed-tools
 └── ...
@@ -77,14 +79,27 @@ Create encrypted Kubernetes secrets for Harbor credentials:
 **Option A: Using .env file (Recommended)**
 
 ```bash
-# 1. Copy the example file
-cp secrets/harbor/.env.example secrets/harbor/.env
+# 1. Copy the example file at project root
+cp .env.example .env
 
 # 2. Edit .env with your actual passwords
-nano secrets/harbor/.env  # or vim secrets/harbor/.env
+nano .env  # or vim .env
 
-# 3. Create the secret (reads from secrets/harbor/.env automatically)
+# 3. Create the secret (reads from .env automatically)
 ./scripts/create-harbor-secrets.sh
+```
+
+**Alternative: Using YAML file**
+
+```bash
+# 1. Copy the example YAML file
+cp secrets/harbor/harbor-credentials.yaml.example secrets/harbor/harbor-credentials.yaml
+
+# 2. Edit with your actual passwords
+nano secrets/harbor/harbor-credentials.yaml
+
+# 3. Apply the secret
+kubectl apply -f secrets/harbor/harbor-credentials.yaml
 ```
 
 **Option B: Interactive prompts**

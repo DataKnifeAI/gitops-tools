@@ -4,17 +4,10 @@
 
 set -e
 
-# Load .env file if it exists (check both root and secrets/harbor)
-ENV_FILE=""
-if [ -f secrets/harbor/.env ]; then
-    ENV_FILE="secrets/harbor/.env"
-elif [ -f .env ]; then
-    ENV_FILE=".env"
-fi
-
-if [ -n "${ENV_FILE}" ]; then
-    echo "Loading credentials from ${ENV_FILE}..."
-    export $(grep -v '^#' "${ENV_FILE}" | xargs)
+# Load .env file from project root if it exists
+if [ -f .env ]; then
+    echo "Loading credentials from .env file..."
+    export $(grep -v '^#' .env | xargs)
 fi
 
 NAMESPACE="${HARBOR_NAMESPACE:-${NAMESPACE:-managed-tools}}"
