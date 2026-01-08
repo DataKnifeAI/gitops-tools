@@ -24,3 +24,7 @@ certs/
 # Local environment files
 .env
 .env.local
+# Harbor secret files with actual passwords
+harbor/base/harbor-secrets.yaml
+harbor/base/harbor-helmchartconfig.yaml
+harbor/base/harbor-secret-patch.yaml
