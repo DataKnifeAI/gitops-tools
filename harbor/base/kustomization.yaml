@@ -7,7 +7,8 @@ resources:
   # namespace.yaml removed - namespace already exists in cluster
   # If namespace doesn't exist, create it manually or uncomment the line above
   - postgresql-cluster.yaml
-  - postgresql-credentials.yaml
+  # postgresql-credentials.yaml removed - secret is managed outside GitOps
+  # The secret must be created manually: see secrets/harbor/postgresql-credentials.yaml.example
   - postgresql-database.yaml
   - harbor-helmchart.yaml
   - harbor-helmchartconfig.yaml
