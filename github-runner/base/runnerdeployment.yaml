@@ -10,7 +10,7 @@ spec:
     spec:
       # Organization-level runner (available to all repos in org)
       # This runner will be available to all projects in the organization
-      organization: <YOUR_GITHUB_ORG>
+      organization: surrealwolf
       
       # Alternative: Repository-level runner (attached to a specific repository)
       # repository: <YOUR_GITHUB_ORG>/<YOUR_REPO>

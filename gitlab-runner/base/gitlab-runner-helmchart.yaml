@@ -16,13 +16,8 @@ spec:
     # Or for self-hosted: https://gitlab.example.com
     
     # Runner registration token
-    # NOTE: You must create a secret with the runner token before deploying
-    # See README.md for details on obtaining and storing the token
-    # Option 1: Set token directly (not recommended for production)
-    # runnerRegistrationToken: ""
-    # Option 2: Use existing secret (recommended)
-    # The secret should contain the key 'runner-registration-token'
-    runnerRegistrationToken: ""
+    # Token extracted from secret: gitlab-runner-secret
+    runnerRegistrationToken: "REMOVED_SECRET_GITLAB_TOKEN"
     # To use a secret, you can also set it via Fleet HelmChartConfig or
     # update this value directly with the token from the secret
     
