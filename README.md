@@ -29,7 +29,12 @@ This repository contains Kubernetes manifests and configurations for deploying m
 
 ## Usage
 
-This repository follows GitOps principles. Changes to manifests in this repository will be automatically applied to the cluster by your GitOps operator (e.g., ArgoCD, Flux).
+This repository follows GitOps principles. Changes to manifests in this repository will be automatically applied to the cluster by your GitOps operator (e.g., ArgoCD, Flux, Rancher Fleet).
+
+The GitOps connection is configured to:
+- Monitor the `harbor/overlays/nprd-apps` path
+- Deploy resources to the `managed-tools` namespace on the `nprd-apps` cluster
+- Automatically sync changes when commits are pushed to the main branch
 
 ## Contributing
 

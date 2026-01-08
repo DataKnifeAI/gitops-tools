@@ -5,3 +5,5 @@ metadata:
   labels:
     name: managed-tools
     purpose: managed-kubernetes-tools
+    app: harbor
+    managed-by: gitops
