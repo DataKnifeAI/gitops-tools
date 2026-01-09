@@ -55,22 +55,10 @@ spec:
       cpu: "1000m"
   
   # High Availability settings
-  postgres:
-    syncReplicaElectionConstraint: true
   maxSyncReplicas: 1
   minSyncReplicas: 1
   
-  # Enable connection pooling with PgBouncer
-  enablePooler: true
-  pooler:
-    instances: 2
-    type: rw
-    pgbouncer:
-      parameters:
-        max_client_conn: "1000"
-        default_pool_size: "25"
-  
-  # Monitoring
-  monitoring:
-    enabled: true
-    disableDefaultQueries: false
+  # Note: enablePooler, pooler, monitoring.enabled, and postgres.syncReplicaElectionConstraint
+  # are not supported in the current CloudNativePG version or cause Fleet Modified state.
+  # These settings can be configured manually if needed, but are removed from GitOps
+  # to prevent Fleet reconciliation issues.
