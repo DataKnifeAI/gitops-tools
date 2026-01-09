@@ -1,0 +1,145 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: harbor
+  namespace: managed-tools
+spec:
+  chart: harbor
+  repo: https://helm.goharbor.io
+  targetNamespace: managed-tools
+  valuesContent: |-
+    expose:
+      type: ingress
+      tls:
+        enabled: true
+        certSource: secret
+        secret:
+          secretName: wildcard-dataknife-net-tls
+          notarySecretName: wildcard-dataknife-net-tls
+      ingress:
+        hosts:
+          core: harbor.dataknife.net
+          notary: notary.dataknife.net
+        className: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          nginx.ingress.kubernetes.io/proxy-body-size: "0"
+          # Note: TLS secret 'wildcard-dataknife-net-tls' must be created manually for internal DNS
+          # Use the generate-wildcard-cert.sh script to create a cluster-wide wildcard certificate
+    externalURL: https://harbor.dataknife.net
+    # Harbor admin password - NOTE: Helm chart does NOT update existing admin passwords
+    # The default password is "Harbor12345" and works after initial deployment
+    # To change the password, use Harbor UI or API after deployment
+    # The existingSecret/secretKey configuration is removed as it doesn't work for existing deployments
+    # Database configuration
+    # NOTE: PostgreSQL must be deployed separately (via operator or external service)
+    # Harbor does not deploy the database - see README.md for details
+    database:
+      type: external
+      external:
+        # PostgreSQL connection details
+        # CloudNativePG creates services: <cluster-name>-rw (read-write), <cluster-name>-ro (read-only)
+        # Use the -rw service to connect to the primary instance
+        # Alternatively, use the pooler service if PgBouncer is enabled: <cluster-name>-pooler-rw
+        host: harbor-postgresql-rw  # CloudNativePG service for read-write connections to primary
+        port: 5432
+        username: harbor  # Database owner user (created by CloudNativePG from bootstrap.initdb.owner)
+        # Note: Password is read from harbor-credentials secret (databasePassword key)
+        # This password must match the password in harbor-postgresql-credentials secret
+        # Password via existingSecret (recommended)
+        existingSecret: harbor-credentials
+        secretKey: databasePassword
+        database: "registry"
+        # SSL mode: disable, require, verify-ca, verify-full
+        sslmode: disable
+        maxIdleConns: 50
+        maxOpenConns: 100
+    redis:
+      type: internal
+      internal:
+        # Redis password - optional, set via harbor-credentials secret if needed
+        # Using existingSecret to reference the harbor-credentials secret
+        # The secret must contain the key 'redisPassword' (can be empty string)
+        existingSecret: harbor-credentials
+        # Secret key name for redis password (must match the key in the secret)
+        secretKey: redisPassword
+    persistence:
+      enabled: true
+      resourcePolicy: "keep"
+      persistentVolumeClaim:
+        registry:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 5Gi
+        chartmuseum:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 5Gi
+        jobservice:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 1Gi
+        database:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 1Gi
+        redis:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 1Gi
+        trivy:
+          storageClass: ""
+          accessMode: ReadWriteOnce
+          size: 5Gi
+    core:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    jobservice:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    registry:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+    chartmuseum:
+      enabled: true
+      replicas: 1
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    trivy:
+      enabled: true
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    notary:
+      enabled: true
+    logLevel: info
+    metrics:
+      enabled: false

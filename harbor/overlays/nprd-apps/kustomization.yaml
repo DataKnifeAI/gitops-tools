@@ -4,24 +4,15 @@ kind: Kustomization
 namespace: managed-tools
 
 resources:
-  # Reference base kustomization directory
-  # When Fleet monitors harbor/ and creates separate bundles, each bundle may only
-  # have access to its own directory. However, Kustomize should resolve ../base/
-  # relative to the kustomization.yaml file location within the git checkout.
-  # If this doesn't work, the base and overlay may need to be in the same bundle.
-  - ../base
+  # namespace.yaml removed - namespace already exists in cluster
+  # If namespace doesn't exist, create it manually or uncomment the line above
+  - postgresql-cluster.yaml
+  # postgresql-credentials.yaml removed - secret is managed outside GitOps
+  # The secret must be created manually: see secrets/harbor/postgresql-credentials.yaml.example
+  - postgresql-database.yaml
+  - harbor-helmchart.yaml
+  - harbor-helmchartconfig.yaml
 
-# Cluster-specific overrides for nprd-apps
-# Add any nprd-apps specific configurations here
-# Examples:
-# - resource limits/requests
-# - storage class
-# - ingress configurations
-# - environment-specific values
-
-patches:
-  # Add patches here for nprd-apps specific configurations
-  # - path: resource-limits.yaml
-  #   target:
-  #     kind: Deployment
-  #     name: harbor-core
+commonLabels:
+  app: harbor
+  managed-by: gitops
