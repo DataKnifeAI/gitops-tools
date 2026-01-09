@@ -36,8 +36,12 @@ spec:
   maxRunners: 10
   
   # Minimum number of runners to maintain
-  # Official ARC creates ephemeral runners, so this is the minimum idle runners
-  minRunners: 2
+  # NOTE: With ephemeral runners, setting minRunners > 0 can cause an endless loop
+  # because ephemeral runners exit when no jobs are queued, but the listener
+  # tries to maintain the minimum by creating new runners.
+  # Setting minRunners: 0 means runners will only be created when jobs are queued.
+  # This is the recommended configuration for ephemeral runners.
+  minRunners: 0
   
   # NOTE: Labels are configured when the runner scale set is created in GitHub
   # They are NOT set in the Kubernetes resource
