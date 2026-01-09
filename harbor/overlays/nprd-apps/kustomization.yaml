@@ -5,7 +5,7 @@ namespace: managed-tools
 
 resources:
   # Base resources embedded in overlay for Fleet path resolution
-  - namespace.yaml
+  # Note: namespace.yaml removed - managed-tools namespace already exists
   - harbor-helmchart.yaml
   - postgresql-cluster.yaml
   - postgresql-database.yaml
