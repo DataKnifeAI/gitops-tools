@@ -4,9 +4,11 @@ kind: Kustomization
 namespace: managed-cicd
 
 resources:
-  - github-runner-controller-helmchart.yaml
-  - runnerdeployment.yaml
-  - horizontalrunnerautoscaler.yaml
+  # Official GitHub-supported ARC (Actions Runner Controller)
+  # Using AutoscalingRunnerSet for runner scale sets
+  - gha-runner-scale-set-helmchart.yaml
+  # Alternative: Direct AutoscalingRunnerSet resource
+  # - autoscalingrunnerset.yaml
 
 # Cluster-specific overrides for nprd-apps
 # Add any nprd-apps specific configurations here
@@ -20,4 +22,4 @@ patches:
   # - path: resource-limits.yaml
   #   target:
   #     kind: HelmChart
-  #     name: actions-runner-controller
+  #     name: gha-runner-scale-set

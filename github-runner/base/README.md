@@ -1,200 +1,120 @@
-# GitHub Actions Runner Controller
+# GitHub Actions Runner Controller - Base Configuration
 
-This directory contains the base configuration for deploying the GitHub Actions Runner Controller (ARC) to Kubernetes clusters.
-
-## Overview
-
-The GitHub Actions Runner Controller is a Kubernetes operator that manages self-hosted GitHub Actions runners. It allows you to run GitHub Actions workflows on your own Kubernetes infrastructure.
+This directory contains base configurations for GitHub Actions Runner Controller using the **official GitHub-supported ARC**.
 
 ## Architecture
 
-- **Controller**: The ARC controller manages runner pods and scales them based on workflow demand
-- **Runner Pods**: Ephemeral pods that execute GitHub Actions workflows
-- **Authentication**: Uses GitHub Personal Access Token (PAT) or GitHub App for authentication
+This setup uses the **official GitHub-supported Actions Runner Controller**:
+- **Controller**: `gha-runner-scale-set-controller`
+- **CRD**: `AutoscalingRunnerSet` (actions.github.com/v1beta1)
+- **Architecture**: Listener-based with ephemeral runners
+- **Repository**: https://github.com/actions/actions-runner-controller
 
-## Prerequisites
+## Documentation
 
-1. **GitHub Authentication**: You need either:
-   - A GitHub Personal Access Token (PAT) with `repo` scope
-   - A GitHub App with appropriate permissions
-   
-2. **Kubernetes Cluster**: Access to a Kubernetes cluster with:
-   - RBAC enabled
-   - Ability to create namespaces, service accounts, and pods
+For complete documentation, see:
+- [GitHub Runner Overview](../../docs/GITHUB_RUNNER.md)
+- [Official ARC Documentation](../../docs/github-runner/OFFICIAL_ARC.md)
+- [Migration Guide](../../docs/github-runner/MIGRATION_TO_OFFICIAL_ARC.md)
+- [GitHub Official Docs](https://docs.github.com/en/actions/tutorials/use-actions-runner-controller)
 
-## Installation
+## Quick Start
 
-### Step 1: Create GitHub Authentication Secret
+### 1. Deploy Controller (if not already deployed)
 
-Before deploying the controller, you must create a secret containing your GitHub token.
+The controller (`gha-runner-scale-set-controller`) must be deployed first. This is typically done at the cluster level.
 
-**Option A: Using kubectl (Recommended for PAT)**
+### 2. Set Up Authentication
 
-```bash
-# Create the secret in the actions-runner-system namespace
-kubectl create namespace actions-runner-system
+Official ARC requires authentication. Two options:
 
-# Create secret with GitHub Personal Access Token
-kubectl create secret generic actions-runner-controller \
-  --from-literal=github_token='<YOUR_GITHUB_PAT>' \
-  -n actions-runner-system
-```
-
-**Option B: Using GitHub App**
-
-If using a GitHub App, create a secret with the app credentials:
+**Option A: GitHub App (Recommended)**
 
 ```bash
-kubectl create secret generic actions-runner-controller \
+# Create GitHub App in organization settings
+# Install on organization
+# Get App ID, Installation ID, and private key
+
+kubectl create secret generic github-app-secret \
   --from-literal=github_app_id='<APP_ID>' \
   --from-literal=github_app_installation_id='<INSTALLATION_ID>' \
   --from-literal=github_app_private_key='<PRIVATE_KEY>' \
-  -n actions-runner-system
+  -n managed-cicd
 ```
 
-**Option C: Update HelmChart to create secret**
-
-Alternatively, you can set `authSecret.create: true` in the HelmChart and provide the token via Fleet HelmChartConfig or update the values directly.
-
-### Step 2: Deploy Controller
-
-The controller will be deployed automatically by Fleet when:
-1. The namespace `actions-runner-system` exists (or will be created by Helm)
-2. The authentication secret exists
-3. Fleet syncs the GitRepo
-
-Monitor deployment:
-```bash
-kubectl get pods -n actions-runner-system
-kubectl get helmchart -n managed-cicd
-```
-
-### Step 3: Deploy RunnerDeployment
-
-After the controller is running, create a RunnerDeployment to manage runners:
-
-```yaml
-apiVersion: actions.summerwind.dev/v1alpha1
-kind: RunnerDeployment
-metadata:
-  name: github-runner-deployment
-  namespace: managed-cicd
-spec:
-  replicas: 1  # Will be managed by HorizontalRunnerAutoscaler if using autoscaling
-  template:
-    spec:
-      repository: <YOUR_GITHUB_ORG>/<YOUR_REPO>
-      # Or use organization-level runners:
-      # organization: <YOUR_GITHUB_ORG>
-```
-
-### Step 4: Enable Autoscaling (Optional but Recommended)
-
-Create a `HorizontalRunnerAutoscaler` to enable automatic scaling:
+**Option B: Personal Access Token (PAT)**
 
 ```bash
-# Edit the example file with your configuration
-kubectl apply -f github-runner/base/horizontalrunnerautoscaler-example.yaml
+# Create PAT with admin:org scope
+kubectl create secret generic github-pat-secret \
+  --from-literal=github_token='<TOKEN>' \
+  -n managed-cicd
 ```
 
-This will automatically scale runners based on workflow demand. See `horizontalrunnerautoscaler-example.yaml` for configuration options.
+### 3. Create AutoscalingRunnerSet
+
+Use the overlay configuration in `overlays/nprd-apps/` for cluster-specific settings.
+
+The overlay contains:
+- `autoscalingrunnerset.yaml` - Direct CRD resource
+- `gha-runner-scale-set-helmchart.yaml` - HelmChart for Fleet (recommended)
 
 ## Configuration
 
-### Controller Resources
+### Using HelmChart (Recommended for Fleet)
 
-The controller resources are configured in `github-runner-controller-helmchart.yaml`. Adjust CPU and memory limits as needed for your cluster.
+The `gha-runner-scale-set-helmchart.yaml` uses HelmChart resource for Fleet management.
 
-### Runner Configuration
+### Using Direct AutoscalingRunnerSet
 
-Runner pods are configured via RunnerDeployment or RunnerSet resources. Common configurations:
+Alternatively, use `autoscalingrunnerset.yaml` for direct CRD deployment.
 
-- **Repository-level runners**: Attached to a specific repository
-- **Organization-level runners**: Available to all repos in an organization
-- **Enterprise-level runners**: Available across an enterprise
+## Key Features
 
-### Scaling
-
-The controller supports autoscaling via `HorizontalRunnerAutoscaler` (HRA). This allows runners to scale up and down based on workflow demand.
-
-**Basic RunnerDeployment (Fixed Replicas):**
-- Set `replicas` in RunnerDeployment for a fixed number of runners
-- Runners are always available but may be idle
-
-**Autoscaling with HorizontalRunnerAutoscaler (Recommended):**
-- Create a `HorizontalRunnerAutoscaler` resource that references your RunnerDeployment
-- Scales based on:
-  - **PercentageRunnersBusy**: Percentage of runners currently executing workflows
-  - **TotalNumberOfQueuedAndInProgressWorkflowRuns**: Total queued/in-progress workflows
-  - **NumberOfQueuedAndInProgressWorkflowRuns**: Per-repository queued workflows
-
-See `horizontalrunnerautoscaler-example.yaml` for a complete autoscaling configuration.
-
-**Example Autoscaling Configuration:**
-```yaml
-apiVersion: actions.summerwind.dev/v1alpha1
-kind: HorizontalRunnerAutoscaler
-metadata:
-  name: github-runner-autoscaler
-spec:
-  scaleTargetRef:
-    name: github-runner-deployment
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-    - type: PercentageRunnersBusy
-      scaleUpThreshold: "0.75"
-      scaleDownThreshold: "0.25"
-```
-
-This will:
-- Scale up when 75% of runners are busy
-- Scale down when less than 25% are busy
-- Maintain between 1-10 runner replicas
-
-## Security Considerations
-
-- **Token Security**: Store GitHub tokens in Kubernetes secrets (encrypted at rest)
-- **RBAC**: The controller requires RBAC permissions to create and manage pods
-- **Network Policies**: Consider implementing network policies to restrict runner pod network access
-- **Resource Limits**: Always set resource limits on runner pods to prevent resource exhaustion
+- ✅ **Official GitHub Support**: Maintained by GitHub
+- ✅ **Ephemeral Runners**: Automatically clean up after jobs
+- ✅ **Built-in Scaling**: No separate autoscaler needed
+- ✅ **Multiple Labels**: Supports multiple runner labels
+- ✅ **Runner Groups**: Full support for runner groups
+- ✅ **Efficient Resource Usage**: Better than community version
 
 ## Troubleshooting
 
-**Controller not starting:**
+### Check Controller Status
+
 ```bash
-# Check controller logs
-kubectl logs -n actions-runner-system -l app=actions-runner-controller
-
-# Verify secret exists
-kubectl get secret actions-runner-controller -n actions-runner-system
-
-# Check RBAC permissions
-kubectl get clusterrolebinding | grep actions-runner-controller
+kubectl get deployment -n actions-runner-system gha-runner-scale-set-controller-gha-rs-controller
 ```
 
-**Runners not being created:**
+### Check AutoscalingRunnerSet
+
 ```bash
-# Check RunnerDeployment status
-kubectl get runnerdeployment -n managed-cicd
-kubectl describe runnerdeployment <name> -n managed-cicd
-
-# Check for runner pods
-kubectl get pods -n managed-cicd -l runner-deployment-name=<name>
-
-# Check controller logs for errors
-kubectl logs -n actions-runner-system -l app=actions-runner-controller | grep -i error
+kubectl get autoscalingrunnerset -n managed-cicd
+kubectl describe autoscalingrunnerset <name> -n managed-cicd
 ```
 
-**Authentication issues:**
-```bash
-# Verify token is valid
-kubectl get secret actions-runner-controller -n actions-runner-system -o jsonpath='{.data.github_token}' | base64 -d
+### Check Listeners
 
-# Test GitHub API access (from a pod with the token)
+```bash
+kubectl get autoscalinglistener -n managed-cicd
+kubectl logs -n managed-cicd -l app.kubernetes.io/name=gha-rs-listener
+```
+
+### Check Ephemeral Runners
+
+```bash
+kubectl get ephemeralrunner -n managed-cicd
+```
+
+### Controller Logs
+
+```bash
+kubectl logs -n actions-runner-system -l app.kubernetes.io/name=gha-rs-controller
 ```
 
 ## References
 
-- [GitHub Actions Runner Controller Documentation](https://github.com/actions/actions-runner-controller)
-- [ARC Helm Chart](https://github.com/actions/actions-runner-controller/tree/master/charts/actions-runner-controller)
+- [Official ARC Documentation](https://docs.github.com/en/actions/tutorials/use-actions-runner-controller)
+- [Deploy Runner Scale Sets](https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/deploy-runner-scale-sets)
+- [Quickstart Guide](https://docs.github.com/en/actions/tutorials/quickstart-for-actions-runner-controller)
+- [Authentication Guide](https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/authenticate-to-the-api)
