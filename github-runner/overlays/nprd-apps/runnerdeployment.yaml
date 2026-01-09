@@ -25,10 +25,11 @@ spec:
       # enterprise: <YOUR_ENTERPRISE_NAME>
       
       # Runner labels (optional)
+      # IMPORTANT: Actions Runner Controller does NOT support multiple labels
+      # See: https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/apply-labels
+      # Use only a single label that matches your workflow's runs-on requirement
       labels:
         - self-hosted
-        - kubernetes
-        - linux
       
       # Docker image for runner
       image: summerwind/actions-runner:latest
