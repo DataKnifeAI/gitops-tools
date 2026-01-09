@@ -68,29 +68,21 @@ spec:
           mountPath: /certs-target
       containers:
       - name: wazuh-indexer
-        image: wazuh/wazuh-indexer:4.10.3
-        # Using 4.10.3 due to x86-64-v2 CPU requirement in versions 4.11.0+
-        # Cluster nodes don't support x86-64-v2, causing "Fatal glibc error"
-        # 4.10.3 is the last 4.10.x release and may work on older CPUs
+        image: wazuh/wazuh-indexer:4.14.1
+        # Using 4.14.1 (latest) - SecurityManager disabled by default since 4.12.0+
+        # This resolves the certificate permission issues we encountered in 4.10.3
+        # CPU compatibility: Works with 'host' CPU type (Proxmox VMs configured)
         securityContext:
           runAsUser: 0
           runAsGroup: 0
         volumeMounts:
         - name: certs-target
           mountPath: /etc/wazuh-indexer/certs
-        - name: policy-target
-          mountPath: /usr/share/wazuh-indexer/opensearch-performance-analyzer
-          readOnly: false
       volumes:
       - name: certs-source
         secret:
           secretName: wazuh-certs
       - name: certs-target
-        emptyDir: {}
-      - name: security-policy
-        configMap:
-          name: wazuh-indexer-security-policy
-      - name: policy-target
         emptyDir: {}
   volumeClaimTemplates:
   - metadata:
