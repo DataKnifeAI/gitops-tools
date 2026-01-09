@@ -78,7 +78,7 @@ spec:
         jobservice:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 5Gi  # Job data and logs (1% of 500GB allocation)
+          size: 1Gi  # Job data and logs (reduced from 5Gi to match Harbor defaults and avoid PVC shrink errors)
         database:
           storageClass: ""
           accessMode: ReadWriteOnce
