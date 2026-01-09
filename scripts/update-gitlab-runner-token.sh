@@ -1,15 +1,32 @@
 #!/bin/bash
-# Update GitLab Runner registration token from Kubernetes secret
-# This script extracts the token from the secret and updates the helmchart
-# to avoid committing the token to git
+# DEPRECATED: This script updates the helmchart file with the token
+# 
+# ⚠️  WARNING: This script puts the token in git files, which is NOT recommended!
+# 
+# Use update-gitlab-runner-helmchartconfig.sh instead, which updates
+# the HelmChartConfig in the cluster without committing to git.
+#
+# This script is kept for reference only. Do not use it unless you
+# understand the security implications of committing tokens to git.
 
 set -e
+
+echo "⚠️  WARNING: This script will put the token in a git file!"
+echo "   Use scripts/update-gitlab-runner-helmchartconfig.sh instead."
+echo ""
+read -p "Are you sure you want to continue? (yes/no): " confirm
+if [ "$confirm" != "yes" ]; then
+    echo "Aborted. Use update-gitlab-runner-helmchartconfig.sh instead."
+    exit 1
+fi
 
 NAMESPACE="${NAMESPACE:-managed-cicd}"
 SECRET_NAME="${SECRET_NAME:-gitlab-runner-secret}"
 HELMCHART_FILE="${HELMCHART_FILE:-gitlab-runner/overlays/nprd-apps/gitlab-runner-helmchart.yaml}"
 
+echo ""
 echo "Updating GitLab Runner registration token from Kubernetes secret..."
+echo "⚠️  This will put the token in the helmchart file!"
 echo ""
 
 # Check if secret exists
@@ -48,9 +65,12 @@ sed -i "s|runnerRegistrationToken:.*|runnerRegistrationToken: \"$TOKEN\"|" "$HEL
 
 echo "✓ HelmChart file updated"
 echo ""
+echo "⚠️  SECURITY WARNING:"
+echo "   The token is now in the helmchart file and will be committed to git!"
+echo "   This is NOT recommended. Use update-gitlab-runner-helmchartconfig.sh instead."
+echo ""
 echo "Next steps:"
 echo "  1. Review the changes: git diff $HELMCHART_FILE"
 echo "  2. Commit and push: git add $HELMCHART_FILE && git commit -m 'chore: update GitLab runner token from secret' && git push"
 echo ""
-echo "⚠️  Note: The token is now in the helmchart file but will be removed from"
-echo "   git history after you rotate the token and clean history again."
+echo "⚠️  Remember to clean git history after rotating the token!"
