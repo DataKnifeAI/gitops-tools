@@ -3,11 +3,15 @@ kind: AutoscalingRunnerSet
 metadata:
   name: github-runner-scale-set
   namespace: managed-cicd
+  labels:
+    # Version label (as per official documentation)
+    # Documentation mentions app.kubernetes.io/version=<chart version> for pods
+    # Trying same format for AutoscalingRunnerSet
+    app.kubernetes.io/version: "0.13.1"
   annotations:
-    # Controller version (REQUIRED)
-    # Must match the controller version to prevent deletion
-    # Controller version: 0.13.1
-    actions.github.com/runner-scale-set-controller-version: "0.13.1"
+    # NOTE: Official troubleshooting docs don't mention version annotations
+    # Version may be managed via Helm chart, not manual annotations
+    # Keeping minimal annotations for now
 spec:
   # Organization-level runner scale set
   # Available to all repositories in the organization
