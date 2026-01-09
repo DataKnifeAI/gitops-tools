@@ -9,6 +9,13 @@ spec:
   # Runners are assigned to a runner group for access control
   githubConfigUrl: https://github.com/DataKnifeAI
   
+  # Authentication secret (REQUIRED)
+  # NOTE: This secret should be created by Terraform when deploying the controller
+  # The secret must contain GitHub App or PAT credentials
+  # Common secret names created by Terraform: github-app-secret, github-token-secret, etc.
+  # Update this name to match what your Terraform project creates
+  githubConfigSecret: github-app-secret  # TODO: Verify secret name matches Terraform
+  
   # Runner group name (must exist in GitHub org settings)
   # Create this group in: https://github.com/organizations/DataKnifeAI/settings/actions/runners
   # Configure it to allow "All repositories" or select specific repos
