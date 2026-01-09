@@ -4,9 +4,25 @@ kind: Kustomization
 namespace: managed-tools
 
 resources:
-  # Base resources embedded in overlay for Fleet path resolution
-  # Note: namespace.yaml removed - managed-tools namespace already exists
-  - ../../base
+  # Base resources - reference base files directly since Fleet processes bundles separately
+  # Wazuh Indexer components
+  - ../base/wazuh-indexer-configmap.yaml
+  - ../base/wazuh-indexer-secret.yaml
+  - ../base/wazuh-indexer-statefulset.yaml
+  - ../base/wazuh-indexer-service.yaml
+  
+  # Wazuh Server (Manager) components
+  - ../base/wazuh-server-configmap.yaml
+  - ../base/wazuh-server-secret.yaml
+  - ../base/wazuh-server-statefulset.yaml
+  - ../base/wazuh-server-service.yaml
+  
+  # Wazuh Dashboard components
+  - ../base/wazuh-dashboard-configmap.yaml
+  - ../base/wazuh-dashboard-secret.yaml
+  - ../base/wazuh-dashboard-deployment.yaml
+  - ../base/wazuh-dashboard-service.yaml
+  - ../base/wazuh-dashboard-ingress.yaml
 
 # Cluster-specific patches for nprd-apps
 patches:
