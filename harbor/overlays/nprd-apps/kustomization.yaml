@@ -4,7 +4,15 @@ kind: Kustomization
 namespace: managed-tools
 
 resources:
-  - ../../base
+  # Reference base directory - when Fleet monitors harbor/overlays/nprd-apps,
+  # it only checks out this directory, so we need to reference base differently.
+  # Since Fleet monitors harbor/overlays/nprd-apps, the base is at ../../base
+  # But Fleet checks out only this path, so we reference base files directly
+  # Note: This requires the GitRepo to monitor 'harbor/' not 'harbor/overlays/nprd-apps'
+  - ../base/postgresql-cluster.yaml
+  - ../base/postgresql-database.yaml
+  - ../base/harbor-helmchart.yaml
+  - ../base/harbor-helmchartconfig.yaml
 
 # Cluster-specific overrides for nprd-apps
 # Add any nprd-apps specific configurations here
