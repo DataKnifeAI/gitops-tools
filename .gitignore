@@ -36,9 +36,9 @@ certs/
 # Harbor secret files with actual passwords
 harbor/base/harbor-secrets.yaml
 harbor/base/harbor-secret-patch.yaml
-# Wazuh secret files with actual passwords
-wazuh/base/*-secret.yaml
-!wazuh/base/*-secret.yaml.example
+# Wazuh secret files - the template files in wazuh/base/ are safe (commented placeholders only)
+# Only exclude if someone creates actual secret files with real values
+# The template files (*-secret.yaml) in wazuh/base/ are intentionally committed as they contain no secrets
 # Note: harbor-helmchartconfig.yaml is now safe (no passwords) and is committed# HelmChartConfig should NOT be committed - it contains the token
 # HelmChartConfig files contain tokens and should not be committed
 **/*helmchartconfig.yaml
