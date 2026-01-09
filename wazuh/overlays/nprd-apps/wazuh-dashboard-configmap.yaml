@@ -13,21 +13,22 @@ metadata:
     managed-by: gitops
 data:
   opensearch_dashboards.yml: |
-    # Server configuration
     server.host: 0.0.0.0
     server.port: 5601
-    server.ssl.enabled: false
-    
-    # OpenSearch/Wazuh Indexer configuration
     opensearch.hosts: https://wazuh-indexer:9200
     opensearch.ssl.verificationMode: none
-    # Note: Using 'none' verification mode temporarily until proper CA certificate is configured
-    # For production, use 'certificate' mode with proper root-ca.pem
-    opensearch.requestHeadersAllowlist: ["securitytenant","Authorization"]
-    
-    # Security settings
+    opensearch.requestHeadersWhitelist: [ authorization,securitytenant ]
     opensearch_security.multitenancy.enabled: false
     opensearch_security.readonly_mode.roles: ["kibana_read_only"]
-    
-    # UI settings
+    server.ssl.enabled: false
+    # Note: Server SSL disabled (using HTTP internally, ingress handles HTTPS)
+    # For production with proper certificates, enable server SSL:
+    # server.ssl.enabled: true
+    # server.ssl.key: "/usr/share/wazuh-dashboard/certs/key.pem"
+    # server.ssl.certificate: "/usr/share/wazuh-dashboard/certs/cert.pem"
+    opensearch.ssl.certificateAuthorities: ["/usr/share/wazuh-dashboard/certs/root-ca.pem"]
     uiSettings.overrides.defaultRoute: /app/wz-home
+    # Session expiration settings
+    opensearch_security.cookie.ttl: 900000
+    opensearch_security.session.ttl: 900000
+    opensearch_security.session.keepalive: true

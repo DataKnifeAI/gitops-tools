@@ -71,15 +71,15 @@ spec:
           subPath: opensearch_dashboards.yml
           readOnly: true
         - name: certs
-          mountPath: /etc/wazuh-dashboard/certs/dashboard.pem
-          subPath: wazuh-dashboard.pem
+          mountPath: /usr/share/wazuh-dashboard/certs/cert.pem
+          subPath: dashboard.pem
           readOnly: true
         - name: certs
-          mountPath: /etc/wazuh-dashboard/certs/dashboard-key.pem
-          subPath: wazuh-dashboard-key.pem
+          mountPath: /usr/share/wazuh-dashboard/certs/key.pem
+          subPath: dashboard-key.pem
           readOnly: true
         - name: certs
-          mountPath: /etc/wazuh-dashboard/certs/root-ca.pem
+          mountPath: /usr/share/wazuh-dashboard/certs/root-ca.pem
           subPath: root-ca.pem
           readOnly: true
         - name: keystore

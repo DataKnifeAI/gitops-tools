@@ -20,6 +20,9 @@
 #    - resource limits (see README.md for recommendations)
 #
 # Example structure (adapt from official manifests):
+# Wazuh Indexer StatefulSet
+# Based on official Wazuh Kubernetes manifests
+# https://github.com/wazuh/wazuh-kubernetes
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -43,53 +46,118 @@ spec:
         component: indexer
         managed-by: gitops
     spec:
-      initContainers:
-      - name: cert-setup
-        image: busybox:latest
-        command: ['sh', '-c']
-        args:
-        - |
-          mkdir -p /certs-target
-          cp /certs-source/wazuh-indexer.pem /certs-target/indexer.pem
-          cp /certs-source/wazuh-indexer-key.pem /certs-target/indexer-key.pem
-          chmod 644 /certs-target/indexer.pem
-          chmod 644 /certs-target/indexer-key.pem
-          # Ensure directory is world-readable/executable for Java SecurityManager
-          chmod 755 /certs-target
-          chmod 644 /certs-target/*.pem
-          ls -la /certs-target/
-        securityContext:
-          runAsUser: 0
-        volumeMounts:
-        - name: certs-source
-          mountPath: /certs-source
-          readOnly: true
-        - name: certs-target
-          mountPath: /certs-target
-      containers:
-      - name: wazuh-indexer
-        image: wazuh/wazuh-indexer:4.14.1
-        # Using 4.14.1 (latest) - SecurityManager disabled by default since 4.12.0+
-        # This resolves the certificate permission issues we encountered in 4.10.3
-        # CPU compatibility: Works with 'host' CPU type (Proxmox VMs configured)
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-        volumeMounts:
-        - name: certs-target
-          mountPath: /etc/wazuh-indexer/certs
+      securityContext:
+        fsGroup: 1000
       volumes:
-      - name: certs-source
-        secret:
-          secretName: wazuh-certs
-      - name: certs-target
-        emptyDir: {}
+        - name: indexer-certs
+          secret:
+            secretName: wazuh-certs
+            defaultMode: 0600
+        - name: indexer-conf
+          configMap:
+            name: wazuh-indexer-config
+            defaultMode: 0600
+      initContainers:
+        - name: volume-mount-hack
+          image: busybox:latest
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+          command:
+            - sh
+            - '-c'
+            - 'chown -R 1000:1000 /var/lib/wazuh-indexer'
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/wazuh-indexer
+        - name: increase-the-vm-max-map-count
+          image: busybox:latest
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count=262144
+          securityContext:
+            privileged: true
+      containers:
+        - name: wazuh-indexer
+          image: wazuh/wazuh-indexer:4.14.1
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+          env:
+            - name: OPENSEARCH_JAVA_OPTS
+              value: '-Xms2g -Xmx2g -Dlog4j2.formatMsgNoLookups=true'
+            - name: CLUSTER_NAME
+              value: wazuh-cluster
+            - name: NETWORK_HOST
+              value: "0.0.0.0"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DISCOVERY_SERVICE
+              value: wazuh-indexer
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: DISABLE_INSTALL_DEMO_CONFIG
+              value: 'true'
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              add: ["SYS_CHROOT"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/wazuh-indexer
+            - name: indexer-certs
+              mountPath: /usr/share/wazuh-indexer/config/certs/node-key.pem
+              subPath: node-key.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /usr/share/wazuh-indexer/config/certs/node.pem
+              subPath: node.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /usr/share/wazuh-indexer/config/certs/root-ca.pem
+              subPath: root-ca.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /usr/share/wazuh-indexer/config/certs/admin.pem
+              subPath: admin.pem
+              readOnly: true
+            - name: indexer-certs
+              mountPath: /usr/share/wazuh-indexer/config/certs/admin-key.pem
+              subPath: admin-key.pem
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/config/opensearch.yml
+              subPath: opensearch.yml
+              readOnly: true
+            - name: indexer-conf
+              mountPath: /usr/share/wazuh-indexer/config/opensearch-security/internal_users.yml
+              subPath: internal_users.yml
+              readOnly: true
+          ports:
+            - containerPort: 9200
+              name: indexer-rest
+            - containerPort: 9300
+              name: indexer-nodes
   volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      # storageClassName will be set in overlay
-      resources:
-        requests:
-          storage: 50Gi
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        # storageClassName will be set in overlay (truenas-nfs)
+        resources:
+          requests:
+            storage: 50Gi
