@@ -43,9 +43,8 @@ spec:
           memory: 4Gi
       
       # Environment variables (optional)
-      env:
-        - name: RUNNER_NAME
-          value: "kubernetes-runner"
+      # Note: RUNNER_NAME is set per-pod by ARC, don't override
+      # This allows each runner to have a unique name
       
       # Ephemeral runners - clean up after job completion
       # This ensures runners don't accumulate and prevents replica buildup
