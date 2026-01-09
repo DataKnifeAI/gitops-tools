@@ -1,4 +1,4 @@
-apiVersion: actions.github.com/v1beta1
+apiVersion: actions.github.com/v1alpha1
 kind: AutoscalingRunnerSet
 metadata:
   name: github-runner-scale-set
