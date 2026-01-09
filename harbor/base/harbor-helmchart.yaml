@@ -70,27 +70,27 @@ spec:
         registry:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 5Gi
+          size: 400Gi  # Main storage for container images (80% of 500GB allocation)
         chartmuseum:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 5Gi
+          size: 50Gi  # Helm chart storage (10% of 500GB allocation)
         jobservice:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 1Gi
+          size: 5Gi  # Job data and logs (1% of 500GB allocation)
         database:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 1Gi
+          size: 1Gi  # Note: PostgreSQL has separate 20Gi x 2 = 40Gi storage
         redis:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 1Gi
+          size: 5Gi  # Redis cache data (1% of 500GB allocation)
         trivy:
           storageClass: ""
           accessMode: ReadWriteOnce
-          size: 5Gi
+          size: 40Gi  # Vulnerability scan data (8% of 500GB allocation)
     core:
       replicas: 1
       resources:
