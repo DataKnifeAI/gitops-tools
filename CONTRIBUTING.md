@@ -69,7 +69,7 @@ docs: update README with new tool information
 1. Ensure your changes follow the development guidelines
 2. Update documentation as needed
 3. Test your changes (if applicable)
-4. Update CHANGELOG.md with your changes
+4. Update [docs/CHANGELOG.md](docs/CHANGELOG.md) with your changes
 5. Create a pull request with a clear description
 6. Reference any related issues
 
@@ -77,7 +77,7 @@ docs: update README with new tool information
 
 - [ ] Code follows project guidelines
 - [ ] Documentation is updated
-- [ ] CHANGELOG.md is updated
+- [ ] [docs/CHANGELOG.md](docs/CHANGELOG.md) is updated
 - [ ] Commits follow conventional commit format
 - [ ] No secrets or sensitive data are committed
 - [ ] Manifests are validated (if applicable)

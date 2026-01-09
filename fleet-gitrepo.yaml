@@ -1,0 +1,14 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: gitops-tools
+  namespace: fleet-default
+spec:
+  repo: https://github.com/DataKnifeAI/gitops-tools
+  branch: main
+  paths:
+    - github-runner/overlays/nprd-apps
+    - gitlab-runner/overlays/nprd-apps
+    - harbor/overlays/nprd-apps
+  clientSecretName: ""
+  helmSecretName: ""
