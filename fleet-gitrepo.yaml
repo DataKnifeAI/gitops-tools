@@ -10,5 +10,6 @@ spec:
     - github-runner/overlays/nprd-apps
     - gitlab-runner/overlays/nprd-apps
     - harbor/overlays/nprd-apps
+    - wazuh/overlays/nprd-apps
   clientSecretName: ""
   helmSecretName: ""
