@@ -45,19 +45,26 @@ fi
 echo "✓ Token extracted successfully"
 echo ""
 
-# Escape the token for YAML (escape quotes and backslashes)
-ESCAPED_TOKEN=$(echo "$TOKEN" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
-
-# Create HelmChartConfig YAML content
-VALUES_CONTENT="runnerRegistrationToken: \"$ESCAPED_TOKEN\""
+# Escape the token for YAML (escape quotes, backslashes, and newlines)
+ESCAPED_TOKEN=$(echo "$TOKEN" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
 
 # Check if HelmChartConfig exists
 if kubectl get helmchartconfig "$HELMCHARTCONFIG_NAME" -n "$NAMESPACE" &>/dev/null; then
     echo "Updating existing HelmChartConfig..."
-    # Update existing HelmChartConfig
-    kubectl patch helmchartconfig "$HELMCHARTCONFIG_NAME" -n "$NAMESPACE" \
-      --type='json' \
-      -p="[{\"op\": \"replace\", \"path\": \"/spec/valuesContent\", \"value\": \"$VALUES_CONTENT\"}]"
+    # Update existing HelmChartConfig using a temporary file to avoid JSON escaping issues
+    TMP_FILE=$(mktemp)
+    cat > "$TMP_FILE" <<EOF
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: $HELMCHARTCONFIG_NAME
+  namespace: $NAMESPACE
+spec:
+  valuesContent: |-
+    runnerRegistrationToken: "$ESCAPED_TOKEN"
+EOF
+    kubectl apply -f "$TMP_FILE"
+    rm -f "$TMP_FILE"
 else
     echo "Creating new HelmChartConfig..."
     # Create new HelmChartConfig
@@ -69,7 +76,7 @@ metadata:
   namespace: $NAMESPACE
 spec:
   valuesContent: |-
-    $VALUES_CONTENT
+    runnerRegistrationToken: "$ESCAPED_TOKEN"
 EOF
 fi
 
