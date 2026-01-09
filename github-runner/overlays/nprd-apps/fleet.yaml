@@ -1,5 +1,8 @@
 # Fleet configuration for nprd-apps cluster
-# This file configures how Fleet deploys GitHub Runner Controller to the nprd-apps cluster
+# This file configures how Fleet deploys GitHub Runner definitions to the nprd-apps cluster
+#
+# NOTE: The controller (gha-runner-scale-set-controller) is managed by Terraform.
+# This repository only manages runner definitions (AutoscalingRunnerSet).
 #
 # Fleet will use this configuration when the GitRepo monitors:
 # - The root directory (creates bundles for each directory)

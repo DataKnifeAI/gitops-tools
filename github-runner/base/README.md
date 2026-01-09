@@ -1,12 +1,13 @@
-# GitHub Actions Runner Controller - Base Configuration
+# GitHub Actions Runner - Runner Definitions
 
-This directory contains base configurations for GitHub Actions Runner Controller using the **official GitHub-supported ARC**.
+This directory contains runner definitions for GitHub Actions Runner Controller using the **official GitHub-supported ARC**.
 
 ## Architecture
 
-This setup uses the **official GitHub-supported Actions Runner Controller**:
-- **Controller**: `gha-runner-scale-set-controller`
-- **CRD**: `AutoscalingRunnerSet` (actions.github.com/v1beta1)
+**IMPORTANT**: The GitHub Actions Runner Controller (`gha-runner-scale-set-controller`) is managed by a separate Terraform project. This repository only manages runner definitions.
+
+- **Controller**: `gha-runner-scale-set-controller` (managed by Terraform - not in this repo)
+- **Runner Definitions**: `AutoscalingRunnerSet` (actions.github.com/v1beta1) - managed here
 - **Architecture**: Listener-based with ephemeral runners
 - **Repository**: https://github.com/actions/actions-runner-controller
 
@@ -20,11 +21,13 @@ For complete documentation, see:
 
 ## Quick Start
 
-### 1. Deploy Controller (if not already deployed)
+### Prerequisites
 
-The controller (`gha-runner-scale-set-controller`) must be deployed first. This is typically done at the cluster level.
+**The controller (`gha-runner-scale-set-controller`) must already be deployed.** The controller is managed by a separate Terraform project, not this repository. This repository only manages runner definitions.
 
-### 2. Set Up Authentication
+### 1. Set Up Authentication
+
+**NOTE**: Authentication secrets should already exist if the controller was deployed via Terraform. If not, you may need to create them manually.
 
 Official ARC requires authentication. Two options:
 
@@ -51,23 +54,28 @@ kubectl create secret generic github-pat-secret \
   -n managed-cicd
 ```
 
-### 3. Create AutoscalingRunnerSet
+### 2. Deploy Runner Definitions
 
 Use the overlay configuration in `overlays/nprd-apps/` for cluster-specific settings.
 
 The overlay contains:
-- `autoscalingrunnerset.yaml` - Direct CRD resource
-- `gha-runner-scale-set-helmchart.yaml` - HelmChart for Fleet (recommended)
+- `autoscalingrunnerset.yaml` - AutoscalingRunnerSet CRD resource (runner definition)
+
+Fleet will deploy this to the target cluster when the GitRepo syncs.
 
 ## Configuration
 
-### Using HelmChart (Recommended for Fleet)
+### Runner Definitions
 
-The `gha-runner-scale-set-helmchart.yaml` uses HelmChart resource for Fleet management.
+This repository manages runner definitions using `AutoscalingRunnerSet` CRD resources. The runner definitions specify:
+- Organization/Repository configuration
+- Runner group assignment
+- Scaling parameters (min/max runners)
+- Labels
+- Resource requirements
+- Runner pod templates
 
-### Using Direct AutoscalingRunnerSet
-
-Alternatively, use `autoscalingrunnerset.yaml` for direct CRD deployment.
+The controller (managed by Terraform) watches for these definitions and creates the necessary listeners and ephemeral runners.
 
 ## Key Features
 
@@ -81,6 +89,8 @@ Alternatively, use `autoscalingrunnerset.yaml` for direct CRD deployment.
 ## Troubleshooting
 
 ### Check Controller Status
+
+**NOTE**: Controller is managed by Terraform. Check with the Terraform project maintainers if issues occur.
 
 ```bash
 kubectl get deployment -n actions-runner-system gha-runner-scale-set-controller-gha-rs-controller

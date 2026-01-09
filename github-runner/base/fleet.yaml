@@ -1,5 +1,8 @@
-# Fleet configuration for GitHub Runner Controller base
-# This file configures the base GitHub Runner Controller bundle
+# Fleet configuration for GitHub Runner base
+# This file configures the base GitHub Runner definitions bundle
+#
+# NOTE: The controller is managed by Terraform, not this repository.
+# This bundle contains base configuration for runner definitions only.
 #
 # NOTE: This base bundle should typically NOT be deployed directly.
 # It's meant to be used by overlays (e.g., github-runner/overlays/nprd-apps).
