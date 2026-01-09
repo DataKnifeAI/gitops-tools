@@ -52,6 +52,11 @@ If you have public repositories and want them to use self-hosted runners:
 
 **Recommendation**: Keep this disabled unless absolutely necessary.
 
+**Note on Forking**: 
+- **Public repositories** cannot have forking disabled (GitHub requirement)
+- **Private repositories** can disable forking to reduce security risk
+- If you need to disable forking, make the repository private first
+
 ### Step 4: Update RunnerDeployment
 
 Update `runnerdeployment.yaml` to use organization-level with runner group:
@@ -112,6 +117,49 @@ Fleet will update the deployment, and new organization-level runners will be cre
 3. **Selected Repos**: Use "Selected repositories" instead of "All repositories"
 4. **Monitoring**: Monitor runner activity regularly
 5. **Isolation**: Consider separate groups for different security levels
+6. **Forking**: Disable forking for private repos to reduce risk
+
+## Disabling Repository Forking
+
+### For Private Repositories
+
+**Repository-Level:**
+1. Go to repository **Settings** → **General**
+2. Scroll to **Features** section
+3. Uncheck **"Allow forking"**
+4. Click **Save**
+
+**Organization-Level:**
+1. Go to: https://github.com/organizations/DataKnifeAI/settings/member_privileges
+2. Under **"Repository forking"**, choose:
+   - **Allow forking of private repositories** (enabled)
+   - **Disallow forking of private repositories** (disabled)
+3. Click **Save**
+
+### For Public Repositories
+
+⚠️ **Cannot be disabled**: Public repositories cannot have forking disabled. This is a fundamental requirement of making a repository public on GitHub.
+
+**Options:**
+- Make the repository private (then forking can be disabled)
+- Use repository-level runners (only your repo can use them, not forks)
+- Keep public repo access disabled in runner groups
+
+### Security Implications
+
+**With Forking Enabled:**
+- Anyone can fork your repository
+- Forks can trigger workflows if public repo access is enabled
+- Higher security risk for self-hosted runners
+
+**With Forking Disabled (Private Repos Only):**
+- Only repository collaborators can access
+- No forks can trigger workflows
+- Lower security risk for self-hosted runners
+
+**Recommendation:**
+- For private repos: Disable forking if using self-hosted runners
+- For public repos: Use repository-level runners or keep public repo access disabled
 
 ## References
 
