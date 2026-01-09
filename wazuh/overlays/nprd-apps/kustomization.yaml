@@ -4,32 +4,24 @@ kind: Kustomization
 namespace: managed-tools
 
 resources:
-  # Base resources - reference base files directly since Fleet processes bundles separately
   # Wazuh Indexer components
-  - ../base/wazuh-indexer-configmap.yaml
-  - ../base/wazuh-indexer-secret.yaml
-  - ../base/wazuh-indexer-statefulset.yaml
-  - ../base/wazuh-indexer-service.yaml
+  - wazuh-indexer-configmap.yaml
+  - wazuh-indexer-secret.yaml
+  - wazuh-indexer-statefulset.yaml
+  - wazuh-indexer-service.yaml
   
   # Wazuh Server (Manager) components
-  - ../base/wazuh-server-configmap.yaml
-  - ../base/wazuh-server-secret.yaml
-  - ../base/wazuh-server-statefulset.yaml
-  - ../base/wazuh-server-service.yaml
+  - wazuh-server-configmap.yaml
+  - wazuh-server-secret.yaml
+  - wazuh-server-statefulset.yaml
+  - wazuh-server-service.yaml
   
   # Wazuh Dashboard components
-  - ../base/wazuh-dashboard-configmap.yaml
-  - ../base/wazuh-dashboard-secret.yaml
-  - ../base/wazuh-dashboard-deployment.yaml
-  - ../base/wazuh-dashboard-service.yaml
-  - ../base/wazuh-dashboard-ingress.yaml
-
-# Cluster-specific patches for nprd-apps
-patches:
-  # Storage class patch - set truenas-nfs for all PVCs
-  - path: storage-class-patch.yaml
-  # Resource limits patch - adjust based on cluster capacity
-  - path: resource-limits-patch.yaml
+  - wazuh-dashboard-configmap.yaml
+  - wazuh-dashboard-secret.yaml
+  - wazuh-dashboard-deployment.yaml
+  - wazuh-dashboard-service.yaml
+  - wazuh-dashboard-ingress.yaml
 
 commonLabels:
   app: wazuh
