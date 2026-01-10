@@ -46,7 +46,7 @@ spec:
             memory_request = "128Mi"
       
       # Runner tags (for group-level runner)
-      tags: "kubernetes,managed-cicd"
+      tags: "kubernetes,managed-cicd,docker"
       
       # Runner executor
       executor: kubernetes
