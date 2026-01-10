@@ -51,18 +51,19 @@ spec:
         command: ['sh', '-c']
         args:
         - |
-          # Create directory structure in both locations
-          mkdir -p /wazuh-config/data/wazuh/config
-          mkdir -p /wazuh-config-backup/data/wazuh/config
-          # Copy our config file to both locations
-          cp /config-source/wazuh.yml /wazuh-config/data/wazuh/config/wazuh.yml
-          cp /config-source/wazuh.yml /wazuh-config-backup/data/wazuh/config/wazuh.yml
+          # Create directory structure at the correct location (Dashboard expects wazuh/config, not data/wazuh/config)
+          mkdir -p /wazuh-config/wazuh/config
+          mkdir -p /wazuh-config-backup/wazuh/config
+          # Copy our config file to the correct location where Dashboard reads it
+          cp /config-source/wazuh.yml /wazuh-config/wazuh/config/wazuh.yml
+          cp /config-source/wazuh.yml /wazuh-config-backup/wazuh/config/wazuh.yml
           # Set proper ownership and permissions
           chown -R 1000:1000 /wazuh-config /wazuh-config-backup
           chmod -R 755 /wazuh-config /wazuh-config-backup
-          chmod 644 /wazuh-config/data/wazuh/config/wazuh.yml
-          chmod 644 /wazuh-config-backup/data/wazuh/config/wazuh.yml
-          echo "Config file copied to both locations"
+          chmod 644 /wazuh-config/wazuh/config/wazuh.yml
+          chmod 644 /wazuh-config-backup/wazuh/config/wazuh.yml
+          echo "Config file copied to /wazuh-config/wazuh/config/wazuh.yml (correct location)"
+          ls -la /wazuh-config/wazuh/config/
         securityContext:
           runAsUser: 0
         volumeMounts:
@@ -125,17 +126,17 @@ spec:
           # Wait for Dashboard to create the directory structure
           sleep 20
           while true; do
-            # Check if config file exists
-            if [ -f /wazuh-config/data/wazuh/config/wazuh.yml ]; then
+            # Check if config file exists at the correct location (Dashboard reads from wazuh/config, not data/wazuh/config)
+            if [ -f /wazuh-config/wazuh/config/wazuh.yml ]; then
               # Check if it contains our correct URL
-              if ! grep -q "url: http://wazuh-server" /wazuh-config/data/wazuh/config/wazuh.yml 2>/dev/null; then
+              if ! grep -q "url: http://wazuh-server" /wazuh-config/wazuh/config/wazuh.yml 2>/dev/null; then
                 echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Config incorrect, restoring..."
-                cp /wazuh-config-backup/data/wazuh/config/wazuh.yml /wazuh-config/data/wazuh/config/wazuh.yml
-                chmod 644 /wazuh-config/data/wazuh/config/wazuh.yml
-                chown 1000:1000 /wazuh-config/data/wazuh/config/wazuh.yml
+                cp /wazuh-config-backup/wazuh/config/wazuh.yml /wazuh-config/wazuh/config/wazuh.yml
+                chmod 644 /wazuh-config/wazuh/config/wazuh.yml
+                chown 1000:1000 /wazuh-config/wazuh/config/wazuh.yml
                 echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Config restored successfully"
                 # Verify it was restored
-                grep "url: http://wazuh-server" /wazuh-config/data/wazuh/config/wazuh.yml && echo "Verified: Config correct" || echo "ERROR: Config restoration failed"
+                grep "url: http://wazuh-server" /wazuh-config/wazuh/config/wazuh.yml && echo "Verified: Config correct" || echo "ERROR: Config restoration failed"
               else
                 echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Config is correct"
               fi
