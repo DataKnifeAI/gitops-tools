@@ -11,7 +11,7 @@ resources:
   - wazuh-indexer-service.yaml
   
   # Wazuh Server (Manager) components
-  - wazuh-server-configmap.yaml
+  # - wazuh-server-configmap.yaml  # Using default ossec.conf from container
   - wazuh-server-secret.yaml
   - wazuh-server-filebeat-configmap.yaml
   - wazuh-server-statefulset.yaml
