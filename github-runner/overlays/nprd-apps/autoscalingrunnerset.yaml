@@ -7,7 +7,8 @@ metadata:
     # Version label (as per official documentation)
     # Documentation mentions app.kubernetes.io/version=<chart version> for pods
     # Trying same format for AutoscalingRunnerSet
-    app.kubernetes.io/version: "0.13.1"
+    # Downgraded to 0.12.1 to avoid JIT config double-encoding bug in 0.13.0/0.13.1
+    app.kubernetes.io/version: "0.12.1"
   annotations:
     # NOTE: Official troubleshooting docs don't mention version annotations
     # Version may be managed via Helm chart, not manual annotations
