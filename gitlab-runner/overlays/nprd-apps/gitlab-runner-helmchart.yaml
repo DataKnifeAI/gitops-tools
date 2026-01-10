@@ -50,17 +50,27 @@ spec:
     
     # Runner configuration
     runners:
-      # Kubernetes executor configuration
-      config: |
-        [[runners]]
-          [runners.kubernetes]
-            namespace = "{{.Release.Namespace}}"
-            image = "alpine:latest"
-            privileged = false
-            cpu_limit = "1"
-            memory_limit = "2Gi"
-            cpu_request = "100m"
-            memory_request = "128Mi"
+        # Kubernetes executor configuration
+        config: |
+          [[runners]]
+            [runners.kubernetes]
+              namespace = "{{.Release.Namespace}}"
+              image = "alpine:latest"
+              privileged = false
+              cpu_limit = "1"
+              memory_limit = "2Gi"
+              cpu_request = "100m"
+              memory_request = "128Mi"
+              
+              # Mount Harbor CA certificate for Docker registry access
+              # Uses the existing wildcard-dataknife-net-tls secret (copied to managed-cicd namespace)
+              # This allows job pods to pull/push images from Harbor registry
+              # Docker expects the certificate at: /etc/docker/certs.d/<registry-hostname>/ca.crt
+              [[runners.kubernetes.volumes.secret]]
+                name = "wildcard-dataknife-net-tls"
+                mount_path = "/etc/docker/certs.d/harbor.dataknife.net"
+                read_only = true
+                items = [{ key = "tls.crt", path = "ca.crt" }]
       
       # Runner tags (for group-level runner)
       tags: "kubernetes,managed-cicd,docker"
