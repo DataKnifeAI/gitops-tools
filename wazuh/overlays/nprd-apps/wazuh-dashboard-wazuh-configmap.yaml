@@ -12,34 +12,6 @@ metadata:
     managed-by: gitops
 data:
   wazuh.yml: |
-    #
-    # Wazuh app - App configuration file
-    # Copyright (C) 2017, Wazuh Inc.
-    #
-    # This program is free software; you can redistribute it and/or modify
-    # it under the terms of the GNU General Public License as published by
-    # the Free Software Foundation; either version 2 of the License, or
-    # (at your option) any later version.
-    #
-    # Find more information about this on the LICENSE file.
-    #
-    # ======================== Wazuh app configuration file ========================
-    #
-    # Please check the documentation for more information on configuration options:
-    # https://documentation.wazuh.com/current/installation-guide/index.html
-    #
-    # Also, you can check our repository:
-    # https://github.com/wazuh/wazuh-dashboard-plugins
-    #
-    # ------------------------------- Index patterns -------------------------------
-    #
-    # Default index pattern to use.
-    #pattern: wazuh-alerts-*
-    #
-    # ----------------------------------- Checks -----------------------------------
-    #
-    # Defines which checks must to be consider by the healthcheck
-    # step once the Wazuh app starts. Values must to be true or false.
     checks:
       - api: true
       - pattern: true
@@ -65,12 +37,6 @@ data:
       - github: true
       - office365: true
       - mscas: true
-    #
-    # ----------------------------------- API -----------------------------------
-    #
-    # Wazuh API connection settings
-    # Configure the Dashboard to connect to the Wazuh Server API
-    #
     hosts:
       - default:
           url: https://wazuh-server
@@ -78,44 +44,22 @@ data:
           username: wazuh-wui
           password: wazuh-wui
           run_as: false
-    #
-    # ---------------------------------- Extensions -------------------------------
-    #
-    # Set to true those of the following settings to enable Wazuh app extensions
     extensions:
-      # PCI DSS extension
       pci: true
-      # GDPR extension
       gdpr: true
-      # HIPAA extension
       hipaa: true
-      # NIST 800-53 extension
       nist: true
-      # TSC extension
       tsc: true
-      # CISCAT extension
       ciscat: true
-      # Audit extension
       audit: true
-      # OpenSCAP extension
       oscap: true
-      # VirusTotal extension
       virustotal: true
-      # Osquery extension
       osquery: true
-      # Docker extension
       docker: true
-      # MITRE extension
       mitre: true
-      # PTR extension
       ptres: true
-      # GitHub extension
       github: true
-      # Office 365 extension
       office365: true
-      # MS CAS extension
       mscas: true
-      # Amazon AWS extension
       amazon: true
-      # Google Cloud Platform extension
       google: true
