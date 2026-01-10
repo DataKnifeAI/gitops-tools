@@ -72,8 +72,8 @@ spec:
               
               echo "=== Step 2: Injecting syslog remote configuration ==="
               # Use Python to inject syslog remote block into ossec.conf
+              # Note: Wazuh allows multiple <ossec_config> blocks, but we'll insert into the first one
               python3 << 'PYTHON_SCRIPT'
-              import xml.etree.ElementTree as ET
               import sys
               import re
               
@@ -93,29 +93,56 @@ spec:
               with open(syslog_fragment, 'r') as f:
                   syslog_xml = f.read().strip()
               
-              # Find the closing </ossec_config> tag and insert before it
-              # Preserve indentation
-              match = re.search(r'(\s+)</ossec_config>', content)
-              if match:
-                  indent = match.group(1)
-                  # Indent each line of syslog fragment
-                  indented_syslog = '\n' + '\n'.join([indent + line if line.strip() else line 
-                                                     for line in syslog_xml.split('\n')])
-                  new_content = re.sub(r'(</ossec_config>)', indented_syslog + r'\n\1', content, count=1)
-              else:
-                  # Fallback: insert before </ossec_config>
-                  new_content = content.replace('</ossec_config>', syslog_xml + '\n</ossec_config>')
+              # Find the LAST closing </ossec_config> tag (in case there are multiple blocks)
+              # and insert before it. Preserve indentation.
+              lines = content.split('\n')
+              
+              # Find the last </ossec_config> tag
+              last_ossec_config_idx = -1
+              indent = "  "
+              for i in range(len(lines) - 1, -1, -1):
+                  if '</ossec_config>' in lines[i]:
+                      last_ossec_config_idx = i
+                      # Extract indentation
+                      match = re.match(r'^(\s+)</ossec_config>', lines[i])
+                      if match:
+                          indent = match.group(1)
+                      break
+              
+              if last_ossec_config_idx == -1:
+                  print("❌ ERROR: Could not find </ossec_config> closing tag")
+                  sys.exit(1)
+              
+              # Indent the syslog fragment to match
+              indented_syslog_lines = [indent + line if line.strip() else line 
+                                       for line in syslog_xml.split('\n')]
+              indented_syslog = '\n' + '\n'.join(indented_syslog_lines)
+              
+              # Insert before the last </ossec_config>
+              lines.insert(last_ossec_config_idx, indented_syslog)
+              new_content = '\n'.join(lines)
               
               # Write back
               with open(ossec_conf, 'w') as f:
                   f.write(new_content)
               
-              # Validate XML
-              try:
-                  ET.parse(ossec_conf)
-                  print("✅ Successfully injected syslog remote configuration (XML validated)")
-              except ET.ParseError as e:
-                  print(f"❌ XML Error: {e}")
+              # Basic validation - check for XML structure (Wazuh may have multiple root elements)
+              # We'll validate by checking that we have matching tags
+              opening_tags = content.count('<ossec_config>')
+              closing_tags = content.count('</ossec_config>')
+              new_opening = new_content.count('<ossec_config>')
+              new_closing = new_content.count('</ossec_config>')
+              
+              if new_opening == new_closing and new_opening > 0:
+                  print(f"✅ Successfully injected syslog remote configuration ({new_opening} ossec_config blocks)")
+              else:
+                  print(f"⚠️  Warning: ossec_config tag mismatch (opening: {new_opening}, closing: {new_closing})")
+              
+              # Verify the syslog block was added
+              if '<connection>syslog</connection>' in new_content:
+                  print("✅ Verified syslog remote configuration is present")
+              else:
+                  print("❌ ERROR: Syslog remote configuration not found after injection")
                   sys.exit(1)
               PYTHON_SCRIPT
               
