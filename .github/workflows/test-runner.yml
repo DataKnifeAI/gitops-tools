@@ -1,6 +1,7 @@
 name: Test Runner
-true:
-  workflow_dispatch: null
+
+on:
+  workflow_dispatch:
   push:
     branches:
     - main
