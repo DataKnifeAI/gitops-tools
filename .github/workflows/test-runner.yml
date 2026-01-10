@@ -13,7 +13,12 @@ permissions:
 
 jobs:
   test-runner:
-    runs-on: self-hosted  # Use self-hosted runners (matches any runner with 'self-hosted' label)
+    # Use self-hosted label - must be set via GitHub UI
+    # Since v1alpha1 AutoscalingRunnerSet doesn't support labels in spec,
+    # labels must be added via GitHub UI:
+    # https://github.com/organizations/DataKnifeAI/settings/actions/runner-groups/NRPD Auto Scale
+    # Find "nprd-autoscale-runners" → Manage labels → Add "self-hosted"
+    runs-on: self-hosted  # Requires "self-hosted" label to be set via GitHub UI
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

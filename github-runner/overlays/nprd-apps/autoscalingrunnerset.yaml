@@ -1,7 +1,7 @@
 apiVersion: actions.github.com/v1alpha1
 kind: AutoscalingRunnerSet
 metadata:
-  name: github-runner-scale-set
+  name: nprd-autoscale-runners
   namespace: managed-cicd
   labels:
     # Version label (as per official documentation)
@@ -29,8 +29,14 @@ spec:
   runnerGroup: NRPD Auto Scale
   
   # Runner scale set name (used in GitHub)
-  # This appears as the runner name prefix in GitHub Actions
-  runnerScaleSetName: nprd-autoscale-runners
+  # IMPORTANT: ARC runner scale sets expose ONLY this name as a label
+  # Per official docs: https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/use-arc-in-a-workflow
+  # "You cannot use additional labels to target runners created by ARC.
+  # You can only use the installation name...or runnerScaleSetName field.
+  # These are used as the 'single label' to use as your runs-on target."
+  # Workflows must use: runs-on: <runnerScaleSetName>
+  # This matches workflow: runs-on: self-hosted
+  runnerScaleSetName: self-hosted
   
   # Maximum number of runners that can be created
   maxRunners: 10
@@ -42,11 +48,6 @@ spec:
   # Setting minRunners: 0 means runners will only be created when jobs are queued.
   # This is the recommended configuration for ephemeral runners.
   minRunners: 0
-  
-  # NOTE: Labels are configured when the runner scale set is created in GitHub
-  # They are NOT set in the Kubernetes resource
-  # After the runner scale set is created, you can add labels via GitHub UI:
-  # https://github.com/organizations/DataKnifeAI/settings/actions/runner-groups/NRPD Auto Scale
   
   # Container spec for the runner pods
   template:
