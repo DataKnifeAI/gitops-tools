@@ -37,20 +37,26 @@ Use **Organization-Level Runners with Groups** if you:
    - Select repositories (e.g., `gitops-tools`)
    - Click **"Add"**
 
-### Step 3: Enable Public Repository Access (Optional)
+### Step 3: Enable Public Repository Access (REQUIRED for Public Repos)
 
 ⚠️ **Security Warning**: Allowing public repos to use self-hosted runners is risky!
 
-If you have public repositories and want them to use self-hosted runners:
+**IMPORTANT**: If your repository is **public**, you MUST enable this flag for workflows to run.
 
-1. In the runner group settings, find **"Allow public repositories"**
-2. Enable the toggle
-3. **Understand the risks**:
+To enable public repository access:
+
+1. Go to the runner group settings: https://github.com/organizations/DataKnifeAI/settings/actions/runner-groups
+2. Click on your runner group name (e.g., "NRPD Auto Scale")
+3. Find the **"Allow public repositories"** checkbox
+4. **Enable the checkbox** (this is REQUIRED for public repos)
+5. Click **"Save changes"**
+
+**Understand the risks**:
    - Forks of public repos can run code on your runners
    - Malicious code could access your infrastructure
    - Only enable if you trust all public repos in the group
 
-**Recommendation**: Keep this disabled unless absolutely necessary.
+**Note**: This setting is REQUIRED if your repository is public. Without it, workflows in public repositories will remain queued and will not be assigned to runners.
 
 **Note on Forking**: 
 - **Public repositories** cannot have forking disabled (GitHub requirement)

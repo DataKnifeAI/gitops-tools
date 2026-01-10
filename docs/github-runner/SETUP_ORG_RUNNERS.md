@@ -18,11 +18,12 @@ This guide walks you through setting up organization-level runners with a runner
    - **Repository access**: Select **"All repositories"**
    - Click **"Create group"**
 
-4. (Optional) Configure public repository access:
+4. **REQUIRED for Public Repos**: Enable public repository access:
    - In the group settings, find **"Allow public repositories"**
-   - Enable if you want public repos to use these runners
-   - ⚠️ **Security Warning**: Only enable if you understand the risks
+   - **Enable the checkbox** (REQUIRED if your repository is public)
+   - ⚠️ **Security Warning**: Understand the risks before enabling
    - Forks of public repos can run code on your runners if enabled
+   - **Without this flag enabled, workflows in public repos will not run**
 
 ## Step 2: Verify Configuration
 
@@ -83,9 +84,14 @@ After Fleet updates (1-2 minutes):
 
 ### Public Repo Access Issues
 
-- **If public repos can't use runners**: Enable "Allow public repositories" in group settings
+- **If public repos can't use runners**: Enable "Allow public repositories" in group settings (REQUIRED)
+- **Jobs stuck in queued**: This is often because "Allow public repositories" is not enabled
 - **Security risk**: Understand that forks can trigger workflows if enabled
-- **Recommendation**: Keep disabled unless necessary
+- **How to enable**:
+  1. Go to: https://github.com/organizations/DataKnifeAI/settings/actions/runner-groups
+  2. Click on your runner group (e.g., "NRPD Auto Scale")
+  3. Check **"Allow public repositories"** checkbox
+  4. Click **"Save changes"**
 
 ## Rollback
 
