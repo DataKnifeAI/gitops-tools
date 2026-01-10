@@ -39,8 +39,12 @@ spec:
   # You can only use the installation name...or runnerScaleSetName field.
   # These are used as the 'single label' to use as your runs-on target."
   # Workflows must use: runs-on: <runnerScaleSetName>
-  # This matches workflow: runs-on: self-hosted
-  runnerScaleSetName: self-hosted
+  #
+  # CRITICAL: Known bug with "self-hosted" label (GitHub issue #3330)
+  # ARC runners may not automatically receive "self-hosted" label
+  # Using "kubernetes" instead to avoid this known issue
+  # Workflow updated to use: runs-on: kubernetes
+  runnerScaleSetName: kubernetes
   
   # Maximum number of runners that can be created
   maxRunners: 10
