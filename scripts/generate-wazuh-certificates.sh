@@ -98,33 +98,57 @@ echo "✓ Kubernetes secret 'wazuh-certs' created/updated in namespace '${NAMESP
 echo ""
 
 # Generate random passwords for credentials
-echo "Generating secure passwords for Wazuh credentials..."
+# NOTE: For Kubernetes deployments, we generate our own passwords.
+#       For traditional Wazuh installations using wazuh-install.sh, passwords
+#       are automatically generated and stored in wazuh-install-files.tar archive.
+#       This script generates passwords specifically for Kubernetes deployments.
+echo "Generating secure passwords for Wazuh credentials (Kubernetes deployment)..."
 INDEXER_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
 SERVER_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
 DASHBOARD_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
 
-# Save passwords to file
+# Save passwords to file (matching format of official wazuh-passwords.txt)
+# For traditional installations: wazuh-install.sh generates this in wazuh-install-files.tar
+# For Kubernetes deployments: we generate it ourselves
 PASSWORDS_FILE="${CERT_DIR}/../wazuh-passwords.txt"
 cat > "${PASSWORDS_FILE}" <<EOF
 # Wazuh Credentials
 # Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-# 
+# Deployment Method: Kubernetes (custom password generation)
+#
 # ⚠️  IMPORTANT: Keep this file secure and do NOT commit it to Git
 # This file contains sensitive credentials for Wazuh components
 #
-# These passwords are also stored in Kubernetes secret 'wazuh-credentials'
+# NOTE ON PASSWORD GENERATION:
+# - Traditional Wazuh installations: wazuh-install.sh automatically generates
+#   passwords and stores them in wazuh-install-files.tar archive
+# - Kubernetes deployments: Passwords must be generated manually (this file)
+#   This matches the official Wazuh documentation format for consistency
+#
+# These passwords are stored in Kubernetes secret 'wazuh-credentials'
 # in namespace '${NAMESPACE}'
 
-Indexer Admin Password: ${INDEXER_PASSWORD}
-Server Password:        ${SERVER_PASSWORD}
-Dashboard Password:     ${DASHBOARD_PASSWORD}
+# Wazuh Indexer Admin User
+# Username: admin
+# Password: ${INDEXER_PASSWORD}
 
-# Default demo credentials (from internal_users.yml):
-# These are the default demo passwords used in the Wazuh Indexer configuration
-# admin: admin (password: admin)
-# kibanaserver: kibanaserver (password: kibanaserver)
-# kibanaro: kibanaro (password: kibanaro)
-# readall: readall (password: readall)
+# Wazuh Server API User  
+# Password: ${SERVER_PASSWORD}
+
+# Wazuh Dashboard User
+# Password: ${DASHBOARD_PASSWORD}
+
+# Default Demo Credentials (from internal_users.yml ConfigMap):
+# These are pre-configured demo users in the Wazuh Indexer security configuration.
+# They use simple passwords for demo purposes (NOT SECURE FOR PRODUCTION):
+#
+# Username: admin         Password: admin
+# Username: kibanaserver  Password: kibanaserver  
+# Username: kibanaro      Password: kibanaro
+# Username: readall       Password: readall
+#
+# These demo credentials are defined in wazuh-indexer-config ConfigMap
+# (internal_users.yml) and should be changed in production deployments.
 EOF
 
 # Set restrictive permissions on password file
