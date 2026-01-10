@@ -39,6 +39,9 @@ spec:
           configMap:
             name: wazuh-unifi-decoder-config
             defaultMode: 0755
+        - name: ossec-etc
+          emptyDir: {}
+          # EmptyDir volume for /var/ossec/etc (initContainer copies default files here and modifies them)
       initContainers:
         # InitContainer 1: Copy default config files and inject syslog configuration
         - name: configure-ossec
@@ -183,10 +186,6 @@ spec:
             mountPath: /etc/filebeat/certs/root-ca.pem
             subPath: root-ca.pem
             readOnly: true
-      volumes:
-        # EmptyDir volume for /var/ossec/etc (initContainer copies default files here and modifies them)
-        - name: ossec-etc
-          emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: logs
