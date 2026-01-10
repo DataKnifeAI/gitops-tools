@@ -51,17 +51,18 @@ spec:
         command: ['sh', '-c']
         args:
         - |
-          # Create directory structure
+          # Create directory structure in both locations
           mkdir -p /wazuh-config/data/wazuh/config
-          # Copy our config file
+          mkdir -p /wazuh-config-backup/data/wazuh/config
+          # Copy our config file to both locations
           cp /config-source/wazuh.yml /wazuh-config/data/wazuh/config/wazuh.yml
+          cp /config-source/wazuh.yml /wazuh-config-backup/data/wazuh/config/wazuh.yml
           # Set proper ownership and permissions
-          chown -R 1000:1000 /wazuh-config
-          chmod -R 755 /wazuh-config
+          chown -R 1000:1000 /wazuh-config /wazuh-config-backup
+          chmod -R 755 /wazuh-config /wazuh-config-backup
           chmod 644 /wazuh-config/data/wazuh/config/wazuh.yml
-          echo "Config file copied and permissions set"
-          ls -la /wazuh-config/data/wazuh/config/
-          cat /wazuh-config/data/wazuh/config/wazuh.yml | grep -A 5 "hosts:"
+          chmod 644 /wazuh-config-backup/data/wazuh/config/wazuh.yml
+          echo "Config file copied to both locations"
         securityContext:
           runAsUser: 0
         volumeMounts:
@@ -70,6 +71,8 @@ spec:
           readOnly: true
         - name: wazuh-config-persistent
           mountPath: /wazuh-config
+        - name: wazuh-config-backup
+          mountPath: /wazuh-config-backup
       containers:
       - name: wazuh-dashboard
         image: wazuh/wazuh-dashboard:4.14.1
@@ -79,6 +82,20 @@ spec:
           runAsUser: 1000
           runAsGroup: 1000
           fsGroup: 1000
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  # Wait a moment for Dashboard to potentially write default config
+                  sleep 5
+                  # Restore our config file
+                  cp /wazuh-config-backup/data/wazuh/config/wazuh.yml /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml 2>/dev/null || true
+                  # Ensure proper permissions
+                  chmod 644 /usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml 2>/dev/null || true
+                  echo "Restored wazuh.yml config"
         ports:
         - containerPort: 5601
           name: http
@@ -110,6 +127,9 @@ spec:
           mountPath: /etc/wazuh-dashboard
         - name: wazuh-config-persistent
           mountPath: /usr/share/wazuh-dashboard/data
+        - name: wazuh-config-backup
+          mountPath: /wazuh-config-backup
+          readOnly: true
       volumes:
       - name: config
         configMap:
@@ -123,4 +143,6 @@ spec:
         configMap:
           name: wazuh-dashboard-wazuh-config
       - name: wazuh-config-persistent
+        emptyDir: {}
+      - name: wazuh-config-backup
         emptyDir: {}
