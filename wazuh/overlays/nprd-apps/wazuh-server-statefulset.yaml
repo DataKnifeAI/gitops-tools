@@ -84,10 +84,15 @@ spec:
               with open(ossec_conf, 'r') as f:
                   content = f.read()
               
-              # Check if syslog remote already exists
+              # Check if syslog remote already exists - if so, remove it first (we'll re-add with updated config)
               if '<connection>syslog</connection>' in content:
-                  print("✅ Syslog remote configuration already exists, skipping...")
-                  sys.exit(0)
+                  print("⚠️  Syslog remote configuration already exists, updating...")
+                  # Remove existing syslog remote block (from <remote> with syslog to </remote>)
+                  import re
+                  # Pattern matches from <remote> with syslog connection to closing </remote>
+                  pattern = r'<remote>\s*<connection>syslog</connection>.*?</remote>'
+                  content = re.sub(pattern, '', content, flags=re.DOTALL)
+                  print("✅ Removed existing syslog remote block, will add updated version")
               
               # Read syslog fragment
               with open(syslog_fragment, 'r') as f:
