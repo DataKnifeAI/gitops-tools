@@ -44,6 +44,10 @@ spec:
     serviceAccount:
       create: true
     
+    # Runner pod replicas for high availability
+    # With 10 replicas and concurrent: 3, total capacity = 30 concurrent jobs
+    replicas: 10
+    
     # Runner configuration
     runners:
       # Kubernetes executor configuration
@@ -109,11 +113,12 @@ spec:
     # Check interval for new jobs
     checkInterval: 30
     
-    # Concurrent job limit
-    # This controls how many jobs can run simultaneously
+    # Concurrent job limit per runner pod
+    # This controls how many jobs each runner pod can handle simultaneously
     # Each job runs in a separate pod, so this effectively controls autoscaling
-    # Increase this value to allow more parallel jobs (more pods will be created)
-    concurrent: 4
+    # With 10 replicas and concurrent: 3, total capacity = 30 concurrent jobs
+    # Adjust based on cluster capacity and job resource requirements
+    concurrent: 3
     
     # Runner registration timeout
     registrationTimeout: 180
