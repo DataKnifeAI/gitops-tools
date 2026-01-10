@@ -19,6 +19,7 @@ resources:
   
   # Wazuh Dashboard components
   - wazuh-dashboard-configmap.yaml
+  - wazuh-dashboard-wazuh-configmap.yaml
   - wazuh-dashboard-secret.yaml
   - wazuh-dashboard-deployment.yaml
   - wazuh-dashboard-service.yaml
