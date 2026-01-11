@@ -44,7 +44,11 @@ spec:
         # Elasticsearch/OpenSearch connection
         # Using external OpenSearch cluster (datanodes disabled)
         # Service name: graylog-opensearch (managed by OpenSearch Kubernetes Operator)
-        GRAYLOG_ELASTICSEARCH_HOSTS: http://graylog-opensearch:9200
+        # OpenSearch 2.19.3 with security enabled requires HTTPS
+        GRAYLOG_ELASTICSEARCH_HOSTS: https://graylog-opensearch:9200
+        # OpenSearch authentication (credentials from secret)
+        GRAYLOG_ELASTICSEARCH_USERNAME: admin
+        GRAYLOG_ELASTICSEARCH_PASSWORD: "PLACEHOLDER_WILL_BE_REPLACED_BY_PATCH"
         # MongoDB connection (with authentication)
         # SECURITY: Password is injected via secret reference using Job patch (graylog-secret-patch-job.yaml)
         # The patch job replaces these placeholders with proper secret-based configuration
