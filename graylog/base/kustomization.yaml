@@ -10,6 +10,7 @@ resources:
   - opensearch-cluster.yaml
   - graylog-helmchart.yaml
   # OpenSearch bootstrap password workaround (MutatingAdmissionWebhook)
+  - opensearch-bootstrap-webhook-issuer.yaml
   - opensearch-bootstrap-webhook-server.yaml
   - opensearch-bootstrap-webhook-certificate.yaml
   - opensearch-bootstrap-webhook.yaml

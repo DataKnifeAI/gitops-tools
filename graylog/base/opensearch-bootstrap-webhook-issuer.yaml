@@ -1,0 +1,21 @@
+# Self-Signed ClusterIssuer for OpenSearch Bootstrap Webhook
+#
+# Creates a self-signed ClusterIssuer that can be used to generate
+# TLS certificates for the webhook server.
+#
+# This ClusterIssuer generates self-signed certificates, which are
+# suitable for internal webhook services.
+#
+# If you have a different issuer (Let's Encrypt, internal CA, etc.),
+# you can use that instead by updating the issuerRef in
+# opensearch-bootstrap-webhook-certificate.yaml
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  labels:
+    app: opensearch-bootstrap-webhook
+    managed-by: gitops
+spec:
+  selfSigned: {}
