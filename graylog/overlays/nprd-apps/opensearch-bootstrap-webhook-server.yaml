@@ -88,6 +88,7 @@ spec:
     metadata:
       labels:
         app: opensearch-bootstrap-webhook
+        component: webhook-server
     spec:
       serviceAccountName: opensearch-bootstrap-webhook
       containers:

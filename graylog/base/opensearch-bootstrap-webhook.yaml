@@ -55,7 +55,4 @@ webhooks:
         operator: NotIn
         values:
         - ca-bundle-injector
-      - key: app
-        operator: NotIn
-        values:
-        - opensearch-bootstrap-webhook
+        - webhook-server
