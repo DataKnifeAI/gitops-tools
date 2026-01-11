@@ -4,6 +4,8 @@ kind: Kustomization
 namespace: managed-tools
 
 resources:
+  # OpenSearch cluster (deployed via OpenSearch Kubernetes Operator)
+  - opensearch-cluster.yaml
   # Cluster-specific Helm chart configuration (contains all values)
   - graylog-helmchart.yaml
   # Syslog service for UniFi CEF input (NodePort for external access)
