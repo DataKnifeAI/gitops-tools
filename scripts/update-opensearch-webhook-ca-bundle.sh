@@ -14,7 +14,7 @@
 
 set -e
 
-NAMESPACE="managed-tools"
+NAMESPACE="managed-graylog"
 SECRET_NAME="opensearch-bootstrap-webhook-cert"
 WEBHOOK_NAME="opensearch-bootstrap-password-webhook"
 
