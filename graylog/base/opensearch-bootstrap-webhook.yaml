@@ -33,10 +33,10 @@ webhooks:
         namespace: managed-graylog
         path: "/mutate"
         port: 443
-      # CA bundle - MUST be updated after certificate creation
-      # If using cert-manager, use cert-manager webhook certificate injector
-      # Manual: kubectl get secret opensearch-bootstrap-webhook-cert -n managed-graylog -o jsonpath='{.data.ca\.crt}'
-      caBundle: ""  # TODO: Add base64-encoded CA certificate
+      # CA bundle - Updated from certificate secret
+      # Extracted from: kubectl get secret opensearch-bootstrap-webhook-cert -n managed-graylog -o jsonpath='{.data.ca\.crt}'
+      # Note: If certificate is regenerated, this must be updated to match
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURMRENDQWhTZ0F3SUJBZ0lRU0l4cmtucDJXZEFYNzAwR1dzWUdHakFOQmdrcWhraUc5dzBCQVFzRkFEQUEKTUI0WERUSTJNREV4TVRBNU16UXpNRm9YRFRJMk1EUXhNVEE1TXpRek1Gb3dBRENDQVNJd0RRWUpLb1pJaHZjTgpBUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTHN6Y3F3TjFSdk5uejQwNHBnb0Qxa04xRENJMXB1c1hBZ3pSWkphCmtVQkJQZkVqdFB4ZU8vcWwyYkdrZXE5N3AxVkJtakZDRlY4ZXNLdTBVTjhkcDJaSGVmRzM2QjRNZjgzRStvQk8KQXJUajV4VEZ2UkEzWFFZVEFoSDJQWEdJMklMZHQ2VlBNcHR0dXBneEk2OUo2YXlDdTNmME5qNzBzOFFSQTRNaAp6SW1lbWwvZ1YweG1XcmtYU0NHbUVqdmdTWXBWVkdWa3ltZkJnQlhGMkM0UnlRZmdFUnlpKzllclBmQjQ3TXZECk85WGR0ZmI5ZmZ6TitKbFlVZ3k0dGxXY1BlS1dJSm8rdEJCMmR1ZzFLSUs4YUhaNkFWNWFCbWEzWVErb1V0Z1QKZFNSbW1qYXZ6ai9PT252Vms5d0xCd2d6NmoyQ2ZGZHZXanVUeGVXSnBIR1AvWjBDQXdFQUFhT0JvVENCbmpBTwpCZ05WSFE4QkFmOEVCQU1DQmFBd0RBWURWUjBUQVFIL0JBSXdBREIrQmdOVkhSRUJBZjhFZERCeWdqQnZjR1Z1CmMyVmhjbU5vTFdKdmIzUnpkSEpoY0MxM1pXSm9iMjlyTG0xaGJtRm5aV1F0WjNKaGVXeHZaeTV6ZG1PQ1BtOXcKWlc1elpXRnlZMmd0WW05dmRITjBjbUZ3TFhkbFltaHZiMnN1YldGdVlXZGxaQzFuY21GNWJHOW5Mbk4yWXk1agpiSFZ6ZEdWeUxteHZZMkZzTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFDamtuZ2FEQTAxQzZwVjR2VHNTRlJrCmhwZUw3anUwdHV0RXBUNzFFa1RCY2xnV1hJdzM1YlV1amJKZTNyYWdmRG5Uc1JsSUUzOGdxNE13dGZxcUpHMXMKUXFOdnJSVWRKTjVkeUN0cEpBVlN4ekpIUTArcVFJTEVsWGtaME1BMDdQTmRzd0QyUUorVjR6MXgwUUxWSDBCOAppNFNGUFRqYVhXMTRVZTI3OHRlNXpudVR3VVhSbldrclNrdUJNMG9sZ05sVlRyTTdFM21kMGtrNHBWMzU2VTQ1CkxaYlRTTmowSG15UmpxbndEMHBUZGU0NEFrbjJqekp6bkEzaUJtNUUvZzdtTmxXRnBMYjkzTkwzcUpZQkZDaHoKN2dxeFh5aHhicElTU0tkeWtxNVRDSmJLcDIwT0E2R3FtTGkybFJkc0kwUDJCWFJhelhQbjRQaVl5M1liRVNBNwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     rules:
       - operations: ["CREATE"]
         apiGroups: [""]

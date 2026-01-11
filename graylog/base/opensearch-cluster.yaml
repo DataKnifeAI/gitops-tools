@@ -40,7 +40,7 @@ spec:
           cpu: "500m"
           memory: "2Gi"
         limits:
-          cpu: "2000m"
+          cpu: "2"  # Operator normalizes "2000m" to "2" - using operator format to prevent drift
           memory: "4Gi"
       persistence:
         pvc:
@@ -63,7 +63,7 @@ spec:
           cpu: "500m"
           memory: "2Gi"
         limits:
-          cpu: "2000m"
+          cpu: "2"  # Operator normalizes "2000m" to "2" - using operator format to prevent drift
           memory: "4Gi"
       persistence:
         pvc:

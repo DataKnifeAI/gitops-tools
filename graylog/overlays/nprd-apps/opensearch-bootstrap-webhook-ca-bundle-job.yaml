@@ -166,7 +166,7 @@ rules:
   resources: ["secrets"]
   verbs: ["get"]
   resourceNames: ["opensearch-bootstrap-webhook-cert"]
-  namespaces: ["managed-graylog"]
+  # Note: ClusterRole cannot have 'namespaces' field - scoping done via RoleBinding in managed-graylog namespace
 - apiGroups: ["admissionregistration.k8s.io"]
   resources: ["mutatingwebhookconfigurations"]
   verbs: ["get", "patch"]
