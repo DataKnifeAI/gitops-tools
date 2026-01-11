@@ -27,6 +27,12 @@ spec:
         - master
         - data
       diskSize: "50Gi"
+      env:
+        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: graylog-opensearch-admin-password
+              key: password
       resources:
         requests:
           cpu: "500m"
@@ -42,6 +48,12 @@ spec:
       roles:
         - data
       diskSize: "250Gi"  # Sized for 2 weeks retention from 2 UniFi instances + growth
+      env:
+        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: graylog-opensearch-admin-password
+              key: password
       resources:
         requests:
           cpu: "500m"
