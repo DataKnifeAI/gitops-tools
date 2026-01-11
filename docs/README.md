@@ -12,6 +12,9 @@ This directory contains comprehensive documentation for all tools and services m
   - [Runner Group Troubleshooting](github-runner/RUNNER_GROUP_ISSUE.md) - Troubleshooting runner group issues
   - [Setup Organization Runners](github-runner/SETUP_ORG_RUNNERS.md) - Setting up org-level runners
 
+### GitLab Runner
+- **[GitLab Runner Base Configuration](../gitlab-runner/base/README.md)** - GitLab CI/CD runner setup, configuration, and Harbor integration
+
 ### Harbor
 - **[Harbor Documentation](HARBOR.md)** - Harbor container registry setup and configuration
 

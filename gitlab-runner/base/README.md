@@ -132,6 +132,125 @@ Cache is configured to use Kubernetes volumes:
 - `cachePath: /cache`: Cache mount path
 - `cacheShared: true`: Share cache between jobs
 
+### Harbor Registry Integration
+
+GitLab Runner is configured to work with the Harbor private container registry. This requires certificate configuration in two places:
+
+1. **Docker-in-Pod Certificate Trust** - For `docker login` and `docker build` commands executed inside job pods
+2. **Kubernetes Image Pull Certificate Trust** - For containerd to pull images from Harbor when creating job pods
+
+#### Certificate Configuration Components
+
+**1. Harbor CA Certificate Secret**
+
+The Harbor CA certificate is extracted from the wildcard certificate secret and stored in a dedicated secret for GitLab Runner:
+
+```bash
+# Sync Harbor CA certificate to GitLab Runner namespace
+./scripts/sync-harbor-ca-cert.sh
+```
+
+This script:
+- Extracts the CA certificate from `wildcard-dataknife-net-tls` secret in `managed-tools` namespace
+- Creates `harbor-ca-cert` secret in `managed-cicd` namespace with only `ca.crt` (no private key)
+- Prevents Docker from expecting client certificates
+
+**2. Docker Certificate Mount in Job Pods**
+
+The GitLab Runner Helm chart configuration mounts the Harbor CA certificate into job pods at `/etc/docker/certs.d/harbor.dataknife.net/ca.crt`:
+
+```yaml
+[[runners.kubernetes.volumes.secret]]
+  name = "harbor-ca-cert"
+  mount_path = "/etc/docker/certs.d/harbor.dataknife.net"
+  read_only = true
+```
+
+This allows Docker commands inside job pods to trust Harbor's certificate.
+
+**3. RKE2/containerd Registry Configuration (DaemonSet)**
+
+A DaemonSet (`containerd-harbor-cert-config`) runs on each node to configure containerd/RKE2 to trust Harbor certificates for image pulls. It:
+
+- Creates `/etc/rancher/rke2/registries.yaml` with Harbor registry configuration
+- Places the CA certificate at `/etc/rancher/rke2/harbor-ca.crt`
+- Also configures containerd certs.d directory for compatibility
+- Runs as a privileged pod with host network access
+
+**Configuration File Structure:**
+
+The DaemonSet creates `/etc/rancher/rke2/registries.yaml`:
+
+```yaml
+mirrors:
+  "harbor.dataknife.net":
+    endpoint:
+      - "https://harbor.dataknife.net"
+configs:
+  "harbor.dataknife.net":
+    tls:
+      ca_file: "/etc/rancher/rke2/harbor-ca.crt"
+```
+
+**Important Notes:**
+
+- The DaemonSet configuration is cluster-specific and located in the overlay directory: `gitlab-runner/overlays/nprd-apps/containerd-harbor-cert-daemonset.yaml`
+- RKE2 requires a service restart (`rke2-server` on control-plane nodes, `rke2-agent` on worker nodes) to pick up `registries.yaml` changes
+- The DaemonSet maintains the configuration files and will recreate them if deleted
+- For K3s clusters, the paths would be `/etc/rancher/k3s/` instead of `/etc/rancher/rke2/`
+
+#### Updating Harbor Certificate
+
+When the Harbor certificate is updated:
+
+1. **Update the Harbor CA certificate secret:**
+   ```bash
+   ./scripts/sync-harbor-ca-cert.sh
+   ```
+
+2. **Restart RKE2 services on all nodes** (required for containerd to pick up changes):
+   ```bash
+   # On control-plane nodes
+   sudo systemctl restart rke2-server
+
+   # On worker nodes
+   sudo systemctl restart rke2-agent
+   ```
+
+   The DaemonSet will automatically update the configuration files, but RKE2 needs a restart to reload `registries.yaml`.
+
+3. **Restart GitLab Runner pods** (to pick up new certificate in mounted secret):
+   ```bash
+   kubectl rollout restart deployment gitlab-runner -n managed-cicd
+   ```
+
+#### Verification
+
+**Verify certificate secret exists:**
+```bash
+kubectl get secret harbor-ca-cert -n managed-cicd
+```
+
+**Verify DaemonSet is running:**
+```bash
+kubectl get daemonset containerd-harbor-cert-config -n managed-cicd
+kubectl get pods -n managed-cicd -l app=containerd-harbor-cert-config
+```
+
+**Verify registries.yaml on a node:**
+```bash
+ssh ubuntu@<node-ip> "sudo cat /etc/rancher/rke2/registries.yaml"
+```
+
+**Test Harbor access from a job pod:**
+```yaml
+# In .gitlab-ci.yml
+test_harbor:
+  script:
+    - docker login harbor.dataknife.net -u <username> -p <password>
+    - docker pull harbor.dataknife.net/dockerhub/library/alpine:latest
+```
+
 ## Security Considerations
 
 - **Token Security**: Store runner tokens in Kubernetes secrets (encrypted at rest)
@@ -182,6 +301,61 @@ kubectl logs -n managed-cicd <job-pod-name>
 
 # Check job pod events
 kubectl describe pod <job-pod-name> -n managed-cicd
+```
+
+**Harbor certificate errors:**
+
+**Error: `tls: failed to verify certificate: x509: certificate signed by unknown authority`**
+
+This error can occur in two scenarios:
+
+1. **Docker commands in job pods** (e.g., `docker login`, `docker build`):
+   - Verify the `harbor-ca-cert` secret exists: `kubectl get secret harbor-ca-cert -n managed-cicd`
+   - Verify the secret is mounted in the GitLab Runner Helm chart configuration
+   - Check job pod logs to confirm certificate is mounted: `kubectl logs <job-pod-name> -n managed-cicd`
+   - Run `./scripts/sync-harbor-ca-cert.sh` to recreate the secret
+
+2. **Kubernetes image pulls** (e.g., `Error: ErrImagePull` during pod creation):
+   - Verify the DaemonSet is running: `kubectl get daemonset containerd-harbor-cert-config -n managed-cicd`
+   - Check DaemonSet pod logs: `kubectl logs -n managed-cicd -l app=containerd-harbor-cert-config --tail=50`
+   - Verify `registries.yaml` exists on nodes: `ssh ubuntu@<node-ip> "sudo cat /etc/rancher/rke2/registries.yaml"`
+   - Restart RKE2 services on all nodes (required after DaemonSet creates/updates files):
+     ```bash
+     # On control-plane nodes
+     sudo systemctl restart rke2-server
+     # On worker nodes
+     sudo systemctl restart rke2-agent
+     ```
+
+**Error: `missing client certificate tls.cert for key tls.key`**
+
+This occurs when the secret contains both `tls.crt` and `tls.key`. Docker interprets this as a client certificate requirement.
+
+- Solution: Use `harbor-ca-cert` secret with only `ca.crt` (no private key)
+- Run `./scripts/sync-harbor-ca-cert.sh` to create the correct secret format
+
+**Certificate not mounted in job pods:**
+```bash
+# Verify secret exists
+kubectl get secret harbor-ca-cert -n managed-cicd
+
+# Check GitLab Runner Helm chart values for volume mount configuration
+kubectl get helmchart gitlab-runner -n managed-cicd -o yaml | grep -A 10 harbor-ca-cert
+
+# Restart GitLab Runner pods to pick up secret changes
+kubectl rollout restart deployment gitlab-runner -n managed-cicd
+```
+
+**DaemonSet not running on nodes:**
+```bash
+# Check DaemonSet status
+kubectl get daemonset containerd-harbor-cert-config -n managed-cicd
+
+# Check DaemonSet pod logs
+kubectl logs -n managed-cicd -l app=containerd-harbor-cert-config
+
+# Verify DaemonSet configuration file exists in overlay
+ls -la gitlab-runner/overlays/nprd-apps/containerd-harbor-cert-daemonset.yaml
 ```
 
 ## References
