@@ -35,26 +35,21 @@ spec:
         - |
           set -e
           
-          # Determine containerd certs directory (K3s specific)
-          if [ -d "/var/lib/rancher/k3s/agent/etc/containerd/certs.d" ]; then
-            # K3s containerd certs directory
-            CERT_BASE_DIR="/var/lib/rancher/k3s/agent/etc/containerd/certs.d"
-          elif [ -d "/etc/containerd/certs.d" ]; then
-            # Standard containerd certs directory
-            CERT_BASE_DIR="/etc/containerd/certs.d"
-          else
-            echo "Warning: containerd certs directory not found, creating /etc/containerd/certs.d"
-            CERT_BASE_DIR="/etc/containerd/certs.d"
-          fi
-          
           HARBOR_URL="harbor.dataknife.net"
-          CERT_DIR="${CERT_BASE_DIR}/${HARBOR_URL}"
-          CERT_FILE="${CERT_DIR}/ca.crt"
           MOUNTED_CERT="/cert/ca.crt"
           
-          echo "Configuring containerd to trust Harbor registry certificate..."
-          echo "Certificate directory: ${CERT_DIR}"
-          echo "Certificate file: ${CERT_FILE}"
+          # K3s registry configuration paths
+          K3S_REGISTRY_DIR="/etc/rancher/k3s"
+          K3S_REGISTRY_YAML="${K3S_REGISTRY_DIR}/registries.yaml"
+          K3S_CERT_FILE="${K3S_REGISTRY_DIR}/harbor-ca.crt"
+          
+          # Also configure containerd certs.d directory (backup method)
+          CONTAINERD_CERTS_DIR="/var/lib/rancher/k3s/agent/etc/containerd/certs.d/${HARBOR_URL}"
+          CONTAINERD_CERT_FILE="${CONTAINERD_CERTS_DIR}/ca.crt"
+          
+          echo "Configuring K3s to trust Harbor registry certificate..."
+          echo "K3s registry config: ${K3S_REGISTRY_YAML}"
+          echo "K3s certificate file: ${K3S_CERT_FILE}"
           echo "Mounted certificate: ${MOUNTED_CERT}"
           
           # Check if mounted certificate exists
@@ -63,38 +58,65 @@ spec:
             exit 1
           fi
           
-          # Create certificate directory
-          echo "Creating certificate directory: ${CERT_DIR}"
-          mkdir -p "${CERT_DIR}"
+          # Create K3s registry directory
+          echo "Creating K3s registry directory: ${K3S_REGISTRY_DIR}"
+          mkdir -p "${K3S_REGISTRY_DIR}"
           
-          # Copy certificate
-          echo "Copying certificate to ${CERT_FILE}"
-          cp "${MOUNTED_CERT}" "${CERT_FILE}"
-          chmod 644 "${CERT_FILE}"
+          # Copy certificate for K3s registries.yaml
+          echo "Copying certificate to ${K3S_CERT_FILE}"
+          cp "${MOUNTED_CERT}" "${K3S_CERT_FILE}"
+          chmod 644 "${K3S_CERT_FILE}"
           
-          echo "✓ Certificate installed successfully"
-          echo "Certificate location: ${CERT_FILE}"
+          # Create K3s registries.yaml configuration
+          echo "Creating K3s registries.yaml configuration..."
+          cat > "${K3S_REGISTRY_YAML}" <<EOF
+          mirrors:
+            "${HARBOR_URL}":
+              endpoint:
+                - "https://${HARBOR_URL}"
+          configs:
+            "${HARBOR_URL}":
+              tls:
+                ca_file: "${K3S_CERT_FILE}"
+          EOF
           
-          # Verify certificate
-          if [ -f "${CERT_FILE}" ]; then
-            echo "✓ Certificate file verified"
-            openssl x509 -in "${CERT_FILE}" -noout -subject 2>/dev/null || echo "Warning: Could not verify certificate format"
-          else
-            echo "Error: Certificate file not found after copy"
-            exit 1
-          fi
+          chmod 644 "${K3S_REGISTRY_YAML}"
+          echo "✓ K3s registries.yaml created"
           
-          # Keep container running to maintain the mount
-          # The certificate is written to the node's filesystem, so the container can exit
-          # But we keep it running to re-apply if the node's filesystem is cleaned
-          echo "Certificate configuration complete. Keeping container running to maintain configuration..."
+          # Also configure containerd certs.d (for compatibility)
+          echo "Also configuring containerd certs.d directory..."
+          mkdir -p "${CONTAINERD_CERTS_DIR}"
+          cp "${MOUNTED_CERT}" "${CONTAINERD_CERT_FILE}"
+          chmod 644 "${CONTAINERD_CERT_FILE}"
+          echo "✓ containerd certs.d configured"
+          
+          echo "✓ Certificate configuration complete"
+          echo "K3s registries.yaml: ${K3S_REGISTRY_YAML}"
+          echo "Certificate file: ${K3S_CERT_FILE}"
+          echo ""
+          echo "Note: K3s service may need to be restarted for changes to take effect."
+          echo "The certificate is configured, but you may need to run:"
+          echo "  sudo systemctl restart k3s-agent  # or k3s on master nodes"
+          echo ""
+          echo "Keeping container running to maintain configuration..."
           while true; do
-            # Verify certificate still exists every 60 seconds
-            if [ ! -f "${CERT_FILE}" ]; then
-              echo "Warning: Certificate file missing, re-copying..."
-              mkdir -p "${CERT_DIR}"
-              cp "${MOUNTED_CERT}" "${CERT_FILE}"
-              chmod 644 "${CERT_FILE}"
+            # Verify certificate and config files still exist every 60 seconds
+            if [ ! -f "${K3S_CERT_FILE}" ] || [ ! -f "${K3S_REGISTRY_YAML}" ]; then
+              echo "Warning: Certificate or config missing, re-applying..."
+              mkdir -p "${K3S_REGISTRY_DIR}"
+              cp "${MOUNTED_CERT}" "${K3S_CERT_FILE}"
+              chmod 644 "${K3S_CERT_FILE}"
+              cat > "${K3S_REGISTRY_YAML}" <<EOF
+          mirrors:
+            "${HARBOR_URL}":
+              endpoint:
+                - "https://${HARBOR_URL}"
+          configs:
+            "${HARBOR_URL}":
+              tls:
+                ca_file: "${K3S_CERT_FILE}"
+          EOF
+              chmod 644 "${K3S_REGISTRY_YAML}"
             fi
             sleep 60
           done
@@ -106,8 +128,8 @@ spec:
           readOnly: true
         - name: k3s-containerd-certs
           mountPath: /var/lib/rancher/k3s/agent/etc/containerd/certs.d
-        - name: containerd-certs
-          mountPath: /etc/containerd/certs.d
+        - name: k3s-registry-config
+          mountPath: /etc/rancher/k3s
       volumes:
       - name: harbor-cert
         secret:
@@ -119,8 +141,8 @@ spec:
         hostPath:
           path: /var/lib/rancher/k3s/agent/etc/containerd/certs.d
           type: DirectoryOrCreate
-      - name: containerd-certs
+      - name: k3s-registry-config
         hostPath:
-          path: /etc/containerd/certs.d
+          path: /etc/rancher/k3s
           type: DirectoryOrCreate
       restartPolicy: Always
