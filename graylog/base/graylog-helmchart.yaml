@@ -51,24 +51,9 @@ spec:
           data: "20Gi"
           logs: "2Gi"
     
-    # OpenSearch Configuration (Graylog log storage)
-    # Option 1: Deploy OpenSearch with Helm chart (internal)
-    opensearch:
-      enabled: true
-      replicas: 1
-      persistence:
-        enabled: true
-        storageClass: ""
-        size: 50Gi
-      resources:
-        requests:
-          cpu: 500m
-          memory: 2Gi
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-      # Java heap size (should be 50% of memory limit)
-      javaOpts: "-Xms2g -Xmx2g"
+    # Datanode Configuration (disabled - using external OpenSearch)
+    datanode:
+      enabled: false
     
     # Ingress Configuration (configured in overlay for cluster-specific host)
     ingress:
@@ -96,8 +81,9 @@ spec:
       # Graylog external URI (configured in overlay)
       # GRAYLOG_HTTP_EXTERNAL_URI: https://graylog.dataknife.net/
       # Elasticsearch/OpenSearch connection
-      # Using datanode service (OpenSearch is deployed as datanodes)
-      GRAYLOG_ELASTICSEARCH_HOSTS: http://graylog-datanode-svc:9200
+      # Using external OpenSearch cluster (datanodes disabled)
+      # TODO: Update with actual external OpenSearch host
+      GRAYLOG_ELASTICSEARCH_HOSTS: http://external-opensearch:9200
       # MongoDB connection (with authentication)
       # Credentials: user 'graylog', password from secret 'graylog-backup-secret' key 'mongodb-db-password'
       GRAYLOG_MONGODB_URI: mongodb://graylog:DfvCJoR48yfIFNyF@graylog-mongo-rs-svc:27017/graylog?replicaSet=graylog-mongo-rs
