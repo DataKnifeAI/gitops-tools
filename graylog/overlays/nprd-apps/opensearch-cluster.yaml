@@ -1,7 +1,9 @@
 # OpenSearch Cluster for Graylog - nprd-apps Overlay
 #
 # Deploys OpenSearch using the OpenSearch Kubernetes Operator
-# Graylog 5.2 supports OpenSearch 2.x (tested up to 2.15)
+# Graylog compatibility: Maximum OpenSearch version is 2.19.3
+# WARNING: OpenSearch 3.0+ is NOT supported and will break Graylog!
+# See: https://go2docs.graylog.org/current/downloading_and_installing_graylog/compatibility_matrix.htm
 #
 apiVersion: opensearch.opster.io/v1
 kind: OpenSearchCluster
@@ -15,7 +17,7 @@ metadata:
     cluster: nprd-apps
 spec:
   general:
-    version: "3.4.0"  # Latest supported by operator v2.8.0 (supports 2.19.2 to 3.x)
+    version: "2.19.3"  # Maximum supported by Graylog (per compatibility matrix - OpenSearch 3.0+ breaks Graylog)
     serviceName: graylog-opensearch  # Service name for OpenSearch cluster
   security:
     config:
@@ -68,4 +70,4 @@ spec:
   dashboards:
     enable: false  # Disable OpenSearch Dashboards (Graylog provides UI)
     replicas: 0  # Required field (0 since disabled)
-    version: "3.4.0"  # Required field (same as OpenSearch version)
+    version: "2.19.3"  # Required field (same as OpenSearch version)
