@@ -1,0 +1,49 @@
+# OpenSearch Bootstrap Password MutatingWebhookConfiguration
+#
+# This MutatingAdmissionWebhook automatically injects OPENSEARCH_INITIAL_ADMIN_PASSWORD
+# into bootstrap pods when they are created.
+#
+# Prerequisites:
+#   1. Webhook server deployment (opensearch-bootstrap-webhook-server.yaml)
+#   2. TLS certificate (managed by cert-manager or manual)
+#   3. CA bundle must be injected into caBundle field (after certificate creation)
+#
+# Certificate setup:
+#   - Using cert-manager: Certificate resource creates secret, CA bundle extracted from secret
+#   - Manual: Create TLS secret, extract CA bundle, update this file
+#
+# See OPENSEARCH_BOOTSTRAP_WORKAROUND.md for full documentation.
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: opensearch-bootstrap-password-webhook
+  labels:
+    app: opensearch-bootstrap-webhook
+    managed-by: gitops
+spec:
+  webhooks:
+    - name: opensearch-bootstrap-password.opensearch.local
+      admissionReviewVersions:
+        - v1
+        - v1beta1
+      sideEffects: None
+      clientConfig:
+        service:
+          name: opensearch-bootstrap-webhook
+          namespace: managed-tools
+          path: "/mutate"
+          port: 443
+      rules:
+        - operations: ["CREATE"]
+          apiGroups: [""]
+          apiVersions: ["v1"]
+          resources: ["pods"]
+      # Match pods in managed-tools namespace (webhook server filters by name pattern)
+      namespaceSelector:
+        matchLabels:
+          name: managed-tools
+      # CA bundle - MUST be updated after certificate creation
+      # If using cert-manager, use cert-manager webhook certificate injector
+      # Manual: kubectl get secret opensearch-bootstrap-webhook-cert -n managed-tools -o jsonpath='{.data.ca\.crt}'
+      caBundle: ""  # TODO: Add base64-encoded CA certificate
