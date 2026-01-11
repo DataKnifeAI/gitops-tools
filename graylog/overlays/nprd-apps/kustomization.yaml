@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: managed-tools
+namespace: managed-graylog
 
 resources:
   # OpenSearch cluster (deployed via OpenSearch Kubernetes Operator)
@@ -22,3 +22,8 @@ commonLabels:
   app: graylog
   managed-by: gitops
   cluster: nprd-apps
+
+# Exclude webhook resources from commonLabels to prevent immutable selector conflicts
+# The webhook Deployment/Service selector must remain app=opensearch-bootstrap-webhook
+patchesStrategicMerge:
+  - opensearch-bootstrap-webhook-selector-patch.yaml

@@ -30,19 +30,19 @@ webhooks:
     clientConfig:
       service:
         name: opensearch-bootstrap-webhook
-        namespace: managed-tools
+        namespace: managed-graylog
         path: "/mutate"
         port: 443
       # CA bundle - MUST be updated after certificate creation
       # If using cert-manager, use cert-manager webhook certificate injector
-      # Manual: kubectl get secret opensearch-bootstrap-webhook-cert -n managed-tools -o jsonpath='{.data.ca\.crt}'
+      # Manual: kubectl get secret opensearch-bootstrap-webhook-cert -n managed-graylog -o jsonpath='{.data.ca\.crt}'
       caBundle: ""  # TODO: Add base64-encoded CA certificate
     rules:
       - operations: ["CREATE"]
         apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]
-    # Match pods in managed-tools namespace (webhook server filters by name pattern)
+    # Match pods in managed-graylog namespace (webhook server filters by name pattern)
     namespaceSelector:
       matchLabels:
-        name: managed-tools
+        name: managed-graylog

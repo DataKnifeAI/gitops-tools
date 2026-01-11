@@ -1,12 +1,9 @@
-# Graylog Namespace
-#
-# Creates the managed-tools namespace for Graylog deployment
-# Note: This namespace may already exist (shared with other tools)
-#
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: managed-tools
+  name: managed-graylog
   labels:
+    name: managed-graylog
+    purpose: managed-kubernetes-tools
     app: graylog
     managed-by: gitops

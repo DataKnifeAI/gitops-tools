@@ -16,7 +16,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: opensearch-bootstrap-webhook-cert
-  namespace: managed-tools
+  namespace: managed-graylog
   labels:
     app: opensearch-bootstrap-webhook
     managed-by: gitops
@@ -31,5 +31,5 @@ spec:
     name: selfsigned-issuer
     kind: ClusterIssuer
   dnsNames:
-    - opensearch-bootstrap-webhook.managed-tools.svc
-    - opensearch-bootstrap-webhook.managed-tools.svc.cluster.local
+    - opensearch-bootstrap-webhook.managed-graylog.svc
+    - opensearch-bootstrap-webhook.managed-graylog.svc.cluster.local

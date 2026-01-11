@@ -7,11 +7,11 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: graylog
-  namespace: managed-tools
+  namespace: managed-graylog
 spec:
   chart: graylog
   repo: https://graylog2.github.io/graylog-helm
-  targetNamespace: managed-tools
+  targetNamespace: managed-graylog
   valuesContent: |-
     # Graylog Configuration - nprd-apps cluster
     graylog:

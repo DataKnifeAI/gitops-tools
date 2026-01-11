@@ -9,7 +9,7 @@ apiVersion: opensearch.opster.io/v1
 kind: OpenSearchCluster
 metadata:
   name: graylog-opensearch
-  namespace: managed-tools
+  namespace: managed-graylog
   labels:
     app: graylog
     component: opensearch
