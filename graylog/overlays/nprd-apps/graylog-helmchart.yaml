@@ -49,6 +49,10 @@ spec:
         # OpenSearch authentication (credentials from secret)
         GRAYLOG_ELASTICSEARCH_USERNAME: admin
         GRAYLOG_ELASTICSEARCH_PASSWORD: "PLACEHOLDER_WILL_BE_REPLACED_BY_PATCH"
+        # Disable SSL verification for self-signed OpenSearch certificates
+        # Note: For production, consider adding OpenSearch CA to Graylog truststore
+        GRAYLOG_ELASTICSEARCH_USE_SSL: "true"
+        GRAYLOG_ELASTICSEARCH_VERIFY_SSL: "false"
         # MongoDB connection (with authentication)
         # SECURITY: Password is injected via secret reference using Job patch (graylog-secret-patch-job.yaml)
         # The patch job replaces these placeholders with proper secret-based configuration
