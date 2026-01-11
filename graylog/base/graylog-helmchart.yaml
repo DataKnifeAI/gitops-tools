@@ -80,10 +80,10 @@ spec:
       GRAYLOG_HTTP_BIND_ADDRESS: 0.0.0.0:9000
       # Graylog external URI (configured in overlay)
       # GRAYLOG_HTTP_EXTERNAL_URI: https://graylog.dataknife.net/
-      # Elasticsearch/OpenSearch connection
-      # Using external OpenSearch cluster (datanodes disabled)
-      # TODO: Update with actual external OpenSearch host
-      GRAYLOG_ELASTICSEARCH_HOSTS: http://external-opensearch:9200
+        # Elasticsearch/OpenSearch connection
+        # Using external OpenSearch cluster (datanodes disabled)
+        # Service name: graylog-opensearch (managed by OpenSearch Kubernetes Operator)
+        GRAYLOG_ELASTICSEARCH_HOSTS: http://graylog-opensearch:9200
       # MongoDB connection (with authentication)
       # Credentials: user 'graylog', password from secret 'graylog-backup-secret' key 'mongodb-db-password'
       GRAYLOG_MONGODB_URI: mongodb://graylog:DfvCJoR48yfIFNyF@graylog-mongo-rs-svc:27017/graylog?replicaSet=graylog-mongo-rs
