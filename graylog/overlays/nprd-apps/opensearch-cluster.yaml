@@ -16,6 +16,7 @@ metadata:
 spec:
   general:
     version: "2.15.0"  # Latest OpenSearch version compatible with Graylog 5.2
+    serviceName: graylog-opensearch  # Service name for OpenSearch cluster
   nodePools:
     - component: masters
       replicas: 1
@@ -50,3 +51,5 @@ spec:
           storageClass: ""  # Use default storage class (truenas-nfs)
   dashboards:
     enable: false  # Disable OpenSearch Dashboards (Graylog provides UI)
+    replicas: 0  # Required field (0 since disabled)
+    version: "2.15.0"  # Required field (same as OpenSearch version)
