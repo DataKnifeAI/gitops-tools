@@ -46,3 +46,10 @@ webhooks:
     namespaceSelector:
       matchLabels:
         name: managed-graylog
+    # Exclude CA bundle injector job pods (chicken-and-egg: job needs to run to inject CA bundle)
+    objectSelector:
+      matchExpressions:
+      - key: component
+        operator: NotIn
+        values:
+        - ca-bundle-injector

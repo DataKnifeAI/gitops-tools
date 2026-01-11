@@ -13,6 +13,8 @@ resources:
   - opensearch-bootstrap-webhook-server.yaml
   - opensearch-bootstrap-webhook-certificate.yaml
   - opensearch-bootstrap-webhook.yaml
+  # CA bundle injection job (runs after certificate creation)
+  - opensearch-bootstrap-webhook-ca-bundle-job.yaml
 
 commonLabels:
   app: graylog
