@@ -23,6 +23,12 @@ spec:
     config:
       adminCredentialsSecret:
         name: graylog-opensearch-admin-password  # Secret for operator access (post-bootstrap)
+  confMgmt:
+    # Configure initial cluster manager nodes for cluster formation
+    # This tells OpenSearch which nodes should be the initial cluster managers
+    # Format: component-name-0,component-name-1,...
+    opensearchconfig:
+      cluster.initial_cluster_manager_nodes: "graylog-opensearch-masters-0"
   nodePools:
     - component: masters
       replicas: 1
