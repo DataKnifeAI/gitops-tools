@@ -5,8 +5,7 @@ namespace: managed-graylog
 
 resources:
   # Base resources - overlay will include these and add Helm chart
-  # Note: namespace.yaml is optional if namespace already exists
-  # - namespace.yaml
+  - namespace.yaml
   - opensearch-cluster.yaml
   - graylog-helmchart.yaml
   # OpenSearch bootstrap password workaround (MutatingAdmissionWebhook)
