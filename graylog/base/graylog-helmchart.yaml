@@ -96,7 +96,8 @@ spec:
       # Graylog external URI (configured in overlay)
       # GRAYLOG_HTTP_EXTERNAL_URI: https://graylog.dataknife.net/
       # Elasticsearch/OpenSearch connection
-      GRAYLOG_ELASTICSEARCH_HOSTS: http://graylog-opensearch:9200
+      # Using datanode service (OpenSearch is deployed as datanodes)
+      GRAYLOG_ELASTICSEARCH_HOSTS: http://graylog-datanode-svc:9200
       # MongoDB connection (with authentication)
       # Credentials: user 'graylog', password from secret 'graylog-backup-secret' key 'mongodb-db-password'
       GRAYLOG_MONGODB_URI: mongodb://graylog:DfvCJoR48yfIFNyF@graylog-mongo-rs-svc:27017/graylog?replicaSet=graylog-mongo-rs
