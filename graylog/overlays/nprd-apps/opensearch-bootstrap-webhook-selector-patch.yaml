@@ -22,4 +22,4 @@ metadata:
   namespace: managed-graylog
 spec:
   selector:
-    app: opensearch-bootstrap-webhook
+    component: webhook-server
