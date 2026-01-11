@@ -23,10 +23,21 @@ spec:
     # This tells OpenSearch which nodes should be the initial cluster managers
     additionalConfig:
       cluster.initial_cluster_manager_nodes: "graylog-opensearch-masters-0"
+      # Configure network publish host to use service hostname
+      # This helps with certificate hostname matching when clients connect via service
+      network.publish_host: "graylog-opensearch.managed-graylog.svc.cluster.local"
   security:
     config:
       adminCredentialsSecret:
         name: graylog-opensearch-admin-password  # Secret for operator access (post-bootstrap)
+    # Configure TLS certificates to include service hostname
+    # Force regeneration by explicitly setting generate: true
+    # This will regenerate certificates that include the service hostname
+    tls:
+      http:
+        generate: true  # Regenerate HTTP certificates with service hostname
+      transport:
+        generate: true  # Regenerate transport certificates
   nodePools:
     - component: masters
       replicas: 1
