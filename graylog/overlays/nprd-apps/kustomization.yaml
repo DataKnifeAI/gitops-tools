@@ -9,7 +9,9 @@ resources:
   # Cluster-specific Helm chart configuration (contains all values)
   - graylog-helmchart.yaml
   # Syslog service for UniFi CEF input (NodePort for external access)
-  - graylog-syslog-service.yaml
+  # NOTE: Service removed from Fleet management to allow manual selector patching
+  # See graylog-syslog-service.yaml for manual deployment instructions
+  # - graylog-syslog-service.yaml
   # OpenSearch bootstrap password workaround (MutatingAdmissionWebhook)
   - opensearch-bootstrap-webhook-issuer.yaml
   - opensearch-bootstrap-webhook-server.yaml
