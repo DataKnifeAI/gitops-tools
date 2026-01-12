@@ -31,9 +31,10 @@ spec:
     # Example: UniFi Network Application → System Logs → SIEM Integration
     #          Syslog Server: <node-ip>:30514
   selector:
-    # Selector will be patched - commonLabels adds app=graylog which doesn't match pod's app=graylog-app
-    # Pod has: app=graylog-app, app.kubernetes.io/name=graylog, app.kubernetes.io/instance=graylog
-    # See graylog-syslog-service-selector-patch.yaml (though kustomize limitation prevents full override)
+    # Note: commonLabels will add app=graylog to this selector, but pod has app=graylog-app
+    # Kustomize limitation: commonLabels are applied after patches, so patches can't override selector labels
+    # The selector will need manual patching after deployment to match pod labels:
+    # kubectl patch svc graylog-syslog -n managed-graylog --type='json' -p='[{"op": "replace", "path": "/spec/selector", "value": {"app": "graylog-app", "app.kubernetes.io/name": "graylog", "app.kubernetes.io/instance": "graylog"}}]'
     app.kubernetes.io/name: graylog
     app.kubernetes.io/instance: graylog
   # Note: This service targets the Graylog server pod
