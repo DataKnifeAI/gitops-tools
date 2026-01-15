@@ -25,7 +25,29 @@ spec:
     commonConfig:
       replication_factor: 1
     
-    # Storage configuration
+    # Loki configuration block (required for microservices mode)
+    loki:
+      # Storage configuration
+      storage:
+        type: filesystem
+        bucketNames:
+          chunks: loki-chunks
+          ruler: loki-ruler
+        filesystem:
+          directory: /loki/chunks
+      
+      # Schema configuration (required)
+      schemaConfig:
+        configs:
+          - from: "2020-10-24"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+    
+    # Storage configuration (top-level for chart compatibility)
     storage:
       type: filesystem
       bucketNames:
@@ -33,17 +55,6 @@ spec:
         ruler: loki-ruler
       filesystem:
         directory: /loki/chunks
-    
-    # Schema configuration
-    schemaConfig:
-      configs:
-        - from: "2020-10-24"
-          store: tsdb
-          object_store: filesystem
-          schema: v13
-          index:
-            prefix: index_
-            period: 24h
     
     # Limits configuration
     limits:
