@@ -47,6 +47,10 @@ spec:
     # Single Binary configuration
     singleBinary:
       replicas: 1
+      storage:
+        bucketNames:
+          chunks: loki-chunks
+          ruler: loki-ruler
       persistence:
         enabled: true
         storageClass: ""
