@@ -16,6 +16,12 @@ data:
   vector.yaml: |
     # Vector Configuration for UniFi CEF Syslog Ingestion
     
+    # Enable API for health checks and metrics
+    api:
+      enabled: true
+      address: "0.0.0.0:9598"
+      playground: false
+    
     sources:
       syslog_udp:
         type: syslog
