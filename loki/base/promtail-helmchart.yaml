@@ -146,6 +146,15 @@ spec:
       limits:
         cpu: 500m
         memory: 512Mi
+    # Readiness probe - allow Promtail to be ready even if no logs found yet
+    # This prevents Promtail from being stuck in "Not Ready" state when cluster is new
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: http-metrics
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 10  # Allow more failures before marking unready
     # Image configuration
     image:
       registry: docker.io

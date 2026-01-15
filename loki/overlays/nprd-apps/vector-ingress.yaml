@@ -1,0 +1,33 @@
+# Vector Ingress
+#
+# Exposes Vector metrics and health endpoints via ingress for external access
+# Access Vector at https://vector.dataknife.net
+#
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vector
+  namespace: managed-syslog
+  labels:
+    app: vector
+    component: syslog
+    managed-by: gitops
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - vector.dataknife.net
+      secretName: wildcard-dataknife-net-tls
+  rules:
+    - host: vector.dataknife.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vector-syslog
+                port:
+                  number: 9598

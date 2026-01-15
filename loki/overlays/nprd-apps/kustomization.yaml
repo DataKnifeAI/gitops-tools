@@ -14,6 +14,7 @@ resources:
   - vector-configmap.yaml
   - vector-deployment.yaml
   - vector-syslog-service.yaml
+  - vector-ingress.yaml
 
 commonLabels:
   app: loki

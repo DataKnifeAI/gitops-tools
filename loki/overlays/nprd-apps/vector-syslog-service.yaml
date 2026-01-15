@@ -15,17 +15,18 @@ metadata:
     managed-by: gitops
     cluster: nprd-apps
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: syslog-udp
     port: 514
     targetPort: 514
     protocol: UDP
-    nodePort: 30514
-    # NodePort 30514 maps to internal port 514 UDP (standard syslog port)
-    # Use any cluster node IP:30514 for UniFi SIEM integration
-    # Example: UniFi Network Application → System Logs → SIEM Integration
-    #          Syslog Server: <node-ip>:30514
+    # UDP syslog port - UniFi devices send CEF syslog here
+  - name: metrics
+    port: 9598
+    targetPort: 9598
+    protocol: TCP
+    # Metrics and health endpoint - exposed via ingress
   selector:
     # Match Vector pod labels
     app: vector

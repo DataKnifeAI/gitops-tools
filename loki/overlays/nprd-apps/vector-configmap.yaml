@@ -13,29 +13,22 @@ metadata:
     component: syslog
     managed-by: gitops
 data:
-  vector.yaml: |-
+  vector.yaml: |
     # Vector Configuration for UniFi CEF Syslog Ingestion
     
-    # Syslog Source - Receives UDP syslog on port 514
     [sources.syslog_udp]
     type = "syslog"
     mode = "udp"
     address = "0.0.0.0:514"
     
-    # Transform - Parse CEF format from syslog message
     [transforms.parse_cef]
     type = "remap"
     inputs = ["syslog_udp"]
     source = '''
-      # Extract CEF payload from syslog message
       cef_message = string!(.message)
-      
-      # Check if message contains CEF format
       if match(cef_message, r'^CEF:') {
-        # Parse CEF format: CEF:Version|Device Vendor|Device Product|Device Version|Signature ID|Name|Severity|Extension
         parts = split(cef_message, "|")
         if length(parts) >= 7 {
-          # Extract CEF standard fields
           if length(parts) > 1 { .device_vendor = parts[1] ?? "" }
           if length(parts) > 2 { .device_product = parts[2] ?? "" }
           if length(parts) > 3 { .device_version = parts[3] ?? "" }
@@ -48,24 +41,17 @@ data:
         }
         .source = "unifi-cef"
       }
-      
-      # Preserve syslog fields
       if exists(.hostname) { .syslog_hostname = .hostname }
       if exists(.facility) { .syslog_facility = .facility }
-      
-      # Set Loki labels
       .source_type = "syslog"
       .format = "cef"
     '''
     
-    # Sink - Forward to Loki
     [sinks.loki]
     type = "loki"
     inputs = ["parse_cef"]
     endpoint = "http://loki-distributor:3100"
     encoding.codec = "json"
-    labels = {
-      namespace = "unifi",
-      app = "unifi-cef"
-    }
+    labels.namespace = "unifi"
+    labels.app = "unifi-cef"
     remove_label_fields = true
