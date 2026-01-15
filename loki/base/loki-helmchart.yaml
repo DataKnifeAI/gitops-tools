@@ -113,6 +113,10 @@ spec:
       enabled: false
       replicas: 0
     
+    # Chunks cache (memcached) - Disabled due to insufficient memory
+    chunksCache:
+      enabled: false
+    
     # Disable other deployment modes to avoid conflicts
     singleBinary:
       enabled: false
