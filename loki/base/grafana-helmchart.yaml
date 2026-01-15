@@ -39,10 +39,9 @@ spec:
       annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
       hosts:
-        - host: grafana.dataknife.net
-          paths:
-            - path: /
-              pathType: Prefix
+        - grafana.dataknife.net
+      path: /
+      pathType: Prefix
       tls:
         - secretName: wildcard-dataknife-net-tls
           hosts:

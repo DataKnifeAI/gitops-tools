@@ -28,6 +28,9 @@ spec:
     # Storage configuration
     storage:
       type: filesystem
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
       filesystem:
         directory: /loki/chunks
     
