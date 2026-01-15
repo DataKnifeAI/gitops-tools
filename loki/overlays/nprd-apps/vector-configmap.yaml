@@ -13,7 +13,7 @@ metadata:
     component: syslog
     managed-by: gitops
 data:
-  vector.yaml: |
+  vector.toml: |
     # Vector Configuration for UniFi CEF Syslog Ingestion
     
     [sources.syslog_udp]

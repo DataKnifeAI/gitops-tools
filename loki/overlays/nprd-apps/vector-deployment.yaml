@@ -50,7 +50,7 @@ spec:
             memory: 512Mi
         env:
         - name: VECTOR_CONFIG
-          value: /etc/vector/vector.yaml
+          value: /etc/vector/vector.toml
         livenessProbe:
           httpGet:
             path: /health
