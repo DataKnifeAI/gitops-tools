@@ -14,9 +14,6 @@ metadata:
     managed-by: gitops
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # Loki API endpoints
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Scope-OrgID "fake";
 spec:
   ingressClassName: nginx
   tls:
