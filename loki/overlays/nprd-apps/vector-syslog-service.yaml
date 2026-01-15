@@ -1,0 +1,34 @@
+# Vector Syslog Service for UniFi CEF Input
+#
+# This service exposes Vector's syslog receiver via NodePort for external access.
+# UniFi devices will send CEF-formatted syslog to this service.
+# Vector will parse the CEF format and forward to Loki.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: vector-syslog
+  namespace: managed-syslog
+  labels:
+    app: vector
+    component: syslog
+    managed-by: gitops
+    cluster: nprd-apps
+spec:
+  type: NodePort
+  ports:
+  - name: syslog-udp
+    port: 514
+    targetPort: 514
+    protocol: UDP
+    nodePort: 30514
+    # NodePort 30514 maps to internal port 514 UDP (standard syslog port)
+    # Use any cluster node IP:30514 for UniFi SIEM integration
+    # Example: UniFi Network Application → System Logs → SIEM Integration
+    #          Syslog Server: <node-ip>:30514
+  selector:
+    # Match Vector pod labels
+    app: vector
+    component: syslog
+  # Note: Vector automatically receives syslog on UDP 514 and parses CEF format
+  # No additional configuration needed - logs are automatically forwarded to Loki

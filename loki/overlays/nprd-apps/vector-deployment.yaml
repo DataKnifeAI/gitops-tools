@@ -1,0 +1,76 @@
+# Vector Deployment for Syslog Receiver
+#
+# Vector receives UniFi CEF syslog on UDP 514, parses CEF format,
+# and forwards to Loki.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-syslog
+  namespace: managed-syslog
+  labels:
+    app: vector
+    component: syslog
+    managed-by: gitops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vector
+      component: syslog
+  template:
+    metadata:
+      labels:
+        app: vector
+        component: syslog
+        managed-by: gitops
+    spec:
+      containers:
+      - name: vector
+        image: timberio/vector:0.38.0-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: syslog-udp
+          containerPort: 514
+          protocol: UDP
+        - name: metrics
+          containerPort: 9598
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/vector
+        - name: data
+          mountPath: /vector-data-dir
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env:
+        - name: VECTOR_CONFIG
+          value: /etc/vector/vector.yaml
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9598
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9598
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: vector-config
+      - name: data
+        emptyDir: {}
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000

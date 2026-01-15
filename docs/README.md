@@ -18,8 +18,9 @@ This directory contains comprehensive documentation for all tools and services m
 ### Harbor
 - **[Harbor Documentation](HARBOR.md)** - Harbor container registry setup and configuration
 
-### Graylog
-- **[Graylog Base Configuration](../graylog/base/README.md)** - Graylog SIEM and log management setup
+### Loki Stack
+- **[Loki Stack Documentation](../loki/README.md)** - Loki log aggregation and visualization (Loki + Promtail + Grafana)
+- **[UniFi CEF Setup](loki/UNIFI_CEF_SETUP.md)** - UniFi CEF syslog integration guide
 
 ### General
 - **[Deployment Guide](DEPLOYMENT.md)** - General deployment procedures
@@ -40,7 +41,7 @@ This directory contains comprehensive documentation for all tools and services m
 ├── github-runner/            # GitHub Actions Runner Controller
 ├── gitlab-runner/            # GitLab Runner
 ├── harbor/                   # Harbor container registry
-├── graylog/                  # Graylog SIEM and log management
+├── loki/                     # Loki Stack (Loki + Promtail + Grafana)
 └── secrets/                  # Secret templates and examples
 ```
 

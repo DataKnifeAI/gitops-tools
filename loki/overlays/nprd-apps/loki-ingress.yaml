@@ -1,0 +1,36 @@
+# Loki Ingress
+#
+# Exposes Loki API and UI via ingress for external access
+# Access Loki at https://loki.dataknife.net
+#
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: loki
+  namespace: managed-syslog
+  labels:
+    app: loki
+    component: loki
+    managed-by: gitops
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Loki API endpoints
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Scope-OrgID "fake";
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - loki.dataknife.net
+      secretName: wildcard-dataknife-net-tls
+  rules:
+    - host: loki.dataknife.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: loki
+                port:
+                  number: 3100

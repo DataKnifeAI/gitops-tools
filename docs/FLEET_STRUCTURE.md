@@ -11,7 +11,7 @@ paths:
   - github-runner/overlays/nprd-apps
   - gitlab-runner/overlays/nprd-apps
   - harbor/overlays/nprd-apps
-  - graylog/overlays/nprd-apps
+  - loki/overlays/nprd-apps
 ```
 
 ## Why Overlay-Only Monitoring?
@@ -22,7 +22,7 @@ If Fleet monitors the root directory (`.`) or base directories:
 - Fleet creates **separate bundles** for each directory
 - Base and overlay bundles both try to deploy the same resources
 - Results in ownership conflicts and `ErrApplied` errors
-- Example: `gitops-tools-nprd-apps-graylog-base` and `gitops-tools-nprd-apps-graylog-overlays-nprd-apps` both deploying `graylog-opensearch-config`
+- Example: `gitops-tools-nprd-apps-loki-base` and `gitops-tools-nprd-apps-loki-overlays-nprd-apps` both deploying `loki-config`
 
 ### Solution: Overlay-Only Pattern
 
@@ -66,17 +66,21 @@ Each overlay directory contains **all necessary files** (copied from base):
 │           ├── postgresql-cluster.yaml       # Copied from base
 │           └── postgresql-database.yaml      # Copied from base
 │
-└── graylog/
+└── loki/
     ├── base/                    # Base configuration (reference only)
     │   ├── kustomization.yaml
-    │   ├── graylog-helmchart.yaml
+    │   ├── loki-helmchart.yaml
+    │   ├── promtail-helmchart.yaml
+    │   ├── grafana-helmchart.yaml
     │   └── README.md
     └── overlays/
         └── nprd-apps/           # Cluster-specific overlay (deployed)
             ├── fleet.yaml       # Cluster targeting
             ├── kustomization.yaml
-            ├── graylog-helmchart.yaml  # Cluster-specific Helm values
-            └── graylog-syslog-service.yaml  # Syslog NodePort for UniFi CEF
+            ├── loki-helmchart.yaml  # Cluster-specific Helm values
+            ├── promtail-helmchart.yaml
+            ├── grafana-helmchart.yaml
+            └── vector-syslog-service.yaml  # Syslog NodePort for UniFi CEF
 ```
 
 ## Key Patterns
@@ -86,11 +90,13 @@ Each overlay directory contains **all necessary files** (copied from base):
 Each overlay's `kustomization.yaml` references **local files** (not `../base/`):
 
 ```yaml
-# ✅ CORRECT (Harbor, GitHub Runner, GitLab Runner, Graylog)
+# ✅ CORRECT (Harbor, GitHub Runner, GitLab Runner, Loki)
 resources:
   - harbor-helmchart.yaml
   - postgresql-cluster.yaml
-  - graylog-helmchart.yaml
+  - loki-helmchart.yaml
+  - promtail-helmchart.yaml
+  - grafana-helmchart.yaml
 
 # ❌ WRONG (causes Fleet errors)
 resources:
@@ -124,7 +130,7 @@ Fleet creates bundles with names based on the monitored path:
 
 - `github-runner/overlays/nprd-apps` → `gitops-tools-nprd-apps-github-runner-overlays-n-<hash>`
 - `harbor/overlays/nprd-apps` → `gitops-tools-nprd-apps-harbor-overlays-nprd-apps`
-- `graylog/overlays/nprd-apps` → `gitops-tools-nprd-apps-graylog-overlays-nprd-apps`
+- `loki/overlays/nprd-apps` → `gitops-tools-nprd-apps-loki-overlays-nprd-apps`
 
 ## Common Issues and Solutions
 
@@ -198,4 +204,4 @@ All tools follow the overlay-only pattern:
 - ✅ **Harbor**: Working (overlay contains all files)
 - ✅ **GitHub Runner**: Working (overlay contains all files)
 - ✅ **GitLab Runner**: Working (overlay contains all files)
-- ✅ **Graylog**: Working (overlay contains Helm chart and services)
+- ✅ **Loki Stack**: Working (overlay contains Helm charts and services)

@@ -1,0 +1,65 @@
+# Grafana Helm Chart Configuration
+#
+# Deploys Grafana (visualization) using the official Grafana Helm chart
+# Official repository: https://grafana.github.io/helm-charts
+# Chart: https://github.com/grafana/helm-charts/tree/main/charts/grafana
+#
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: grafana
+  namespace: managed-syslog
+spec:
+  chart: grafana
+  repo: https://grafana.github.io/helm-charts
+  targetNamespace: managed-syslog
+  valuesContent: |-
+    # Grafana Configuration - Latest stable version
+    adminUser: admin
+    # adminPassword: Set in overlay via existingSecret
+    # existingSecret: loki-credentials
+    # secretKey: adminPassword
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    service:
+      type: ClusterIP
+      port: 80
+    ingress:
+      enabled: false  # Enable in overlay for cluster-specific host
+      ingressClassName: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: grafana.dataknife.net
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: wildcard-dataknife-net-tls
+          hosts:
+            - grafana.dataknife.net
+    # Datasources configuration
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://loki:3100
+            isDefault: true
+            jsonData:
+              maxLines: 1000
+    # Image configuration
+    image:
+      repository: grafana/grafana
+      tag: "11.0.0"  # Latest stable version

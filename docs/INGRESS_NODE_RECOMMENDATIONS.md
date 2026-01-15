@@ -36,13 +36,17 @@ rke2-ingress-nginx-controller pods:
 
 ### Recommended DNS Configuration
 
-**For Ingress Hostnames** (e.g., `graylog.dataknife.net`, `harbor.dataknife.net`):
+**For Ingress Hostnames** (e.g., `loki.dataknife.net`, `grafana.dataknife.net`, `harbor.dataknife.net`):
 
 **Use Worker Nodes Only** (Recommended):
 ```
-graylog.dataknife.net.    IN  A  192.168.14.113
-graylog.dataknife.net.    IN  A  192.168.14.114
-graylog.dataknife.net.    IN  A  192.168.14.115
+loki.dataknife.net.       IN  A  192.168.14.113
+loki.dataknife.net.       IN  A  192.168.14.114
+loki.dataknife.net.       IN  A  192.168.14.115
+
+grafana.dataknife.net.    IN  A  192.168.14.113
+grafana.dataknife.net.    IN  A  192.168.14.114
+grafana.dataknife.net.    IN  A  192.168.14.115
 
 harbor.dataknife.net.     IN  A  192.168.14.113
 harbor.dataknife.net.     IN  A  192.168.14.114
@@ -73,28 +77,35 @@ harbor.dataknife.net.     IN  A  192.168.14.115
 If you want maximum redundancy and don't mind adding load to control-plane:
 
 ```
-graylog.dataknife.net.    IN  A  192.168.14.110
-graylog.dataknife.net.    IN  A  192.168.14.111
-graylog.dataknife.net.    IN  A  192.168.14.112
-graylog.dataknife.net.    IN  A  192.168.14.113
-graylog.dataknife.net.    IN  A  192.168.14.114
-graylog.dataknife.net.    IN  A  192.168.14.115
+loki.dataknife.net.       IN  A  192.168.14.110
+loki.dataknife.net.       IN  A  192.168.14.111
+loki.dataknife.net.       IN  A  192.168.14.112
+loki.dataknife.net.       IN  A  192.168.14.113
+loki.dataknife.net.       IN  A  192.168.14.114
+loki.dataknife.net.       IN  A  192.168.14.115
+
+grafana.dataknife.net.    IN  A  192.168.14.110
+grafana.dataknife.net.    IN  A  192.168.14.111
+grafana.dataknife.net.    IN  A  192.168.14.112
+grafana.dataknife.net.    IN  A  192.168.14.113
+grafana.dataknife.net.    IN  A  192.168.14.114
+grafana.dataknife.net.    IN  A  192.168.14.115
 ```
 
 **Note**: This provides maximum redundancy but adds external traffic load to control-plane components.
 
 ## NodePort Services
 
-### Current Setup: Graylog Syslog (SIEM)
+### Current Setup: Vector Syslog (SIEM)
 
-The Graylog syslog service uses NodePort on port 30514 (UDP) for syslog/SIEM integration (UniFi CEF).
+The Vector syslog service uses NodePort on port 30514 (UDP) for syslog/SIEM integration (UniFi CEF).
 
 **Recommended DNS Configuration:**
 
 ```
-graylog-syslog.dataknife.net.  IN  A  192.168.14.113
-graylog-syslog.dataknife.net.  IN  A  192.168.14.114
-graylog-syslog.dataknife.net.  IN  A  192.168.14.115
+vector-syslog.dataknife.net.  IN  A  192.168.14.113
+vector-syslog.dataknife.net.  IN  A  192.168.14.114
+vector-syslog.dataknife.net.  IN  A  192.168.14.115
 ```
 
 **Same Principle**: Use worker nodes to reduce load on control-plane components.
@@ -103,19 +114,19 @@ graylog-syslog.dataknife.net.  IN  A  192.168.14.115
 
 ### Ingress Flow
 
-1. **DNS Resolution**: Client resolves `graylog.dataknife.net` → Gets worker node IPs (113-115)
+1. **DNS Resolution**: Client resolves `grafana.dataknife.net` → Gets worker node IPs (113-115)
 2. **Traffic Routing**: Client connects to worker node IP (e.g., 192.168.14.113:443)
 3. **Ingress Controller**: Ingress controller pod on that worker node handles the request
-4. **Service Routing**: Ingress controller routes to backend service (`graylog:9000`)
+4. **Service Routing**: Ingress controller routes to backend service (`grafana:80`)
 
 **Important**: Even though ingress controller pods run on all nodes, DNS should point to worker nodes only to avoid control-plane load.
 
 ### NodePort Flow
 
-1. **DNS Resolution**: Client resolves `graylog-syslog.dataknife.net` → Gets worker node IPs (113-115)
+1. **DNS Resolution**: Client resolves `vector-syslog.dataknife.net` → Gets worker node IPs (113-115)
 2. **Traffic Routing**: Client connects to worker node IP:NodePort (e.g., 192.168.14.113:30514)
-3. **Kubernetes Routing**: Kubernetes routes to service backend (`graylog-syslog:514`)
-4. **Service Backend**: Request reaches the target pod (Graylog server with syslog input configured)
+3. **Kubernetes Routing**: Kubernetes routes to service backend (`vector-syslog:514`)
+4. **Service Backend**: Request reaches the target pod (Vector syslog receiver with CEF parsing)
 
 **Important**: NodePort works on all nodes, but DNS should target worker nodes to reduce control-plane load.
 

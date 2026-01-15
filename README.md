@@ -16,6 +16,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 - **Harbor**: Container image registry with DockerHub proxy cache
 - **GitHub Runner**: GitHub Actions self-hosted runners
 - **GitLab Runner**: GitLab CI/CD runners
+- **Loki Stack**: Log aggregation and visualization (Loki + Promtail + Grafana)
 
 ## Structure
 
@@ -24,6 +25,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 ├── harbor/          # Harbor registry deployment
 ├── github-runner/   # GitHub Actions runners
 ├── gitlab-runner/   # GitLab CI/CD runners
+├── loki/            # Loki Stack (Loki + Promtail + Grafana)
 ├── scripts/         # Setup and utility scripts
 ├── secrets/         # Secret templates and examples
 └── docs/            # Detailed documentation

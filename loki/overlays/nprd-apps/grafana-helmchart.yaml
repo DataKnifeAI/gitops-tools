@@ -1,0 +1,63 @@
+# Grafana Helm Chart Configuration - nprd-apps Overlay
+#
+# Cluster-specific configuration for nprd-apps cluster
+#
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: grafana
+  namespace: managed-syslog
+spec:
+  chart: grafana
+  repo: https://grafana.github.io/helm-charts
+  targetNamespace: managed-syslog
+  valuesContent: |-
+    # Grafana Configuration - Latest stable version
+    adminUser: admin
+    # adminPassword: Set via existingSecret (see secrets/loki/README.md)
+    # existingSecret: loki-credentials
+    # secretKey: adminPassword
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    service:
+      type: ClusterIP
+      port: 80
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: grafana.dataknife.net
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: wildcard-dataknife-net-tls
+          hosts:
+            - grafana.dataknife.net
+    # Datasources configuration
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://loki:3100
+            isDefault: true
+            jsonData:
+              maxLines: 1000
+    # Image configuration
+    image:
+      repository: grafana/grafana
+      tag: "11.0.0"  # Latest stable version
