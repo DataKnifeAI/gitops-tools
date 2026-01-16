@@ -28,7 +28,7 @@ spec:
       # Privileged container to write to node filesystem
       containers:
       - name: cert-config
-        image: alpine:latest
+        image: dockerhub/library/alpine:latest
         command:
         - /bin/sh
         - -c
