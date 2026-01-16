@@ -24,9 +24,11 @@ data:
     
     sources:
       syslog_udp:
-        type: syslog
+        type: socket
         mode: udp
         address: "0.0.0.0:514"
+        framing:
+          method: newline_delimited
       
       internal_metrics:
         type: internal_metrics
@@ -37,7 +39,17 @@ data:
         inputs:
           - syslog_udp
         source: |
-          cef_message = string!(.message)
+          # Handle raw socket data - extract message field
+          message_text = string!(.message)
+          # Check if message contains CEF (might have syslog prefix)
+          cef_message = message_text
+          if match(message_text, r'CEF:') {
+            # Extract CEF portion if there's a syslog prefix
+            cef_match = match(message_text, r'CEF:.*')
+            if cef_match != null {
+              cef_message = cef_match
+            }
+          }
           if match(cef_message, r'^CEF:') {
             parts = split(cef_message, "|")
             if length(parts) >= 7 {
