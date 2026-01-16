@@ -67,8 +67,9 @@ data:
         path: "/loki/api/v1/push"
         encoding:
           codec: json
-        headers:
-          X-Scope-OrgID: "fake"
+        request:
+          headers:
+            X-Scope-OrgID: "fake"
         labels:
           namespace: unifi
           app: unifi-cef
