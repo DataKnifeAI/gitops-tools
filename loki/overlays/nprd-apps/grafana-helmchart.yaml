@@ -59,4 +59,13 @@ spec:
               httpHeaderName1: "X-Scope-OrgID"
             secureJsonData:
               httpHeaderValue1: "fake"
+          - name: Prometheus
+            type: prometheus
+            access: proxy
+            url: http://prometheus-kube-prometheus-prometheus:9090
+            isDefault: false
+            jsonData:
+              timeInterval: 30s
+              queryTimeout: 300s
+              httpMethod: POST
     # Image configuration - using default Grafana images from Docker Hub
