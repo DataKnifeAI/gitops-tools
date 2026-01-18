@@ -17,11 +17,12 @@ spec:
     # Uses external endpoint to push logs to central Loki
     
     config:
+      global:
+        external_labels:
+          cluster: "poc-apps"
       clients:
         # External Loki endpoint (push to nprd-apps cluster)
         - url: https://loki.dataknife.net/loki/api/v1/push
-          externalLabels:
-            cluster: "poc-apps"
           # Add authentication if required:
           # bearer_token_file: /var/run/secrets/loki/token
           # Or basic auth:

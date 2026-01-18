@@ -18,14 +18,15 @@ spec:
     # Override in cluster overlays with specific Loki endpoint and cluster labels
     
     config:
+      global:
+        external_labels:
+          # Cluster label - OVERRIDE in cluster overlay
+          cluster: "default"
       clients:
         # Loki endpoint - OVERRIDE in cluster overlay
         # Default: internal service (for nprd-apps cluster)
         # External clusters: use external URL
         - url: http://loki-distributor.managed-syslog.svc.cluster.local:3100/loki/api/v1/push
-          externalLabels:
-            # Cluster label - OVERRIDE in cluster overlay
-            cluster: "default"
       snippets:
         scrapeConfigs: |
           - job_name: kubernetes-pods

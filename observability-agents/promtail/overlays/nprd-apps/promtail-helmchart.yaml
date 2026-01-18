@@ -17,11 +17,12 @@ spec:
     # Uses internal service endpoint since Loki is on the same cluster
     
     config:
+      global:
+        external_labels:
+          cluster: "nprd-apps"
       clients:
         # Internal Loki endpoint (same cluster)
         - url: http://loki-distributor.managed-syslog.svc.cluster.local:3100/loki/api/v1/push
-          externalLabels:
-            cluster: "nprd-apps"
       snippets:
         scrapeConfigs: |
           - job_name: kubernetes-pods
