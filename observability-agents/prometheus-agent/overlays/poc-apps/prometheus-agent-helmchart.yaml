@@ -1,6 +1,6 @@
-# Prometheus Agent Helm Chart Configuration - cluster-a Overlay
+# Prometheus Agent Helm Chart Configuration - poc-apps Overlay
 #
-# Cluster-specific configuration for cluster-a
+# Cluster-specific configuration for poc-apps
 # Uses external endpoint to push metrics to central Prometheus on nprd-apps cluster
 #
 apiVersion: helm.cattle.io/v1
@@ -13,7 +13,7 @@ spec:
   repo: https://prometheus-community.github.io/helm-charts
   targetNamespace: managed-syslog
   valuesContent: |-
-    # Prometheus Agent Configuration - cluster-a
+    # Prometheus Agent Configuration - poc-apps
     # Uses external endpoint to push metrics to central Prometheus
     
     agent:
@@ -25,7 +25,7 @@ spec:
     config:
       global:
         external_labels:
-          cluster: "cluster-a"
+          cluster: "poc-apps"
       
       # External Prometheus endpoint (push to nprd-apps cluster)
       remote_write:
@@ -72,7 +72,7 @@ spec:
             - replacement: 'kube-state-metrics'
               target_label: job
     
-    # Resources for cluster-a
+    # Resources for poc-apps
     resources:
       requests:
         cpu: 200m

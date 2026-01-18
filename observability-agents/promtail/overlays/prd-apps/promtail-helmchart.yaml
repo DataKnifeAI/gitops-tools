@@ -1,6 +1,6 @@
-# Promtail Helm Chart Configuration - cluster-b Overlay
+# Promtail Helm Chart Configuration - prd-apps Overlay
 #
-# Cluster-specific configuration for cluster-b
+# Cluster-specific configuration for prd-apps
 # Uses external endpoint to push logs to central Loki on nprd-apps cluster
 #
 apiVersion: helm.cattle.io/v1
@@ -13,7 +13,7 @@ spec:
   repo: https://grafana.github.io/helm-charts
   targetNamespace: managed-syslog
   valuesContent: |-
-    # Promtail Configuration - cluster-b
+    # Promtail Configuration - prd-apps
     # Uses external endpoint to push logs to central Loki
     
     config:
@@ -21,7 +21,7 @@ spec:
         # External Loki endpoint (push to nprd-apps cluster)
         - url: https://loki.dataknife.net/loki/api/v1/push
           externalLabels:
-            cluster: "cluster-b"
+            cluster: "prd-apps"
       snippets:
         scrapeConfigs: |
           - job_name: kubernetes-pods
@@ -80,7 +80,7 @@ spec:
                 replacement: /var/log/pods/$1/$2/*.log
                 target_label: __path__
     
-    # Resources for cluster-b
+    # Resources for prd-apps
     resources:
       requests:
         cpu: 100m

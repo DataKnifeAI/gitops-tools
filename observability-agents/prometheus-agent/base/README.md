@@ -33,11 +33,11 @@ Each cluster overlay should override:
 ## Example Overlay Configuration
 
 ```yaml
-# observability-agents/prometheus-agent/overlays/my-cluster/prometheus-agent-helmchart.yaml
+# observability-agents/prometheus-agent/overlays/poc-apps/prometheus-agent-helmchart.yaml
 config:
   global:
     external_labels:
-      cluster: "my-cluster"
+      cluster: "poc-apps"
   remote_write:
     - url: https://prometheus.dataknife.net/api/v1/write  # External endpoint
 ```

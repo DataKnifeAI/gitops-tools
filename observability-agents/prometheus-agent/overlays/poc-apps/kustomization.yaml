@@ -11,4 +11,4 @@ resources:
 commonLabels:
   app: prometheus-agent
   managed-by: gitops
-  cluster: cluster-b
+  cluster: poc-apps

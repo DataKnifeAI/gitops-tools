@@ -1,6 +1,6 @@
-# Promtail Helm Chart Configuration - cluster-a Overlay
+# Promtail Helm Chart Configuration - poc-apps Overlay
 #
-# Cluster-specific configuration for cluster-a
+# Cluster-specific configuration for poc-apps
 # Uses external endpoint to push logs to central Loki on nprd-apps cluster
 #
 apiVersion: helm.cattle.io/v1
@@ -13,7 +13,7 @@ spec:
   repo: https://grafana.github.io/helm-charts
   targetNamespace: managed-syslog
   valuesContent: |-
-    # Promtail Configuration - cluster-a
+    # Promtail Configuration - poc-apps
     # Uses external endpoint to push logs to central Loki
     
     config:
@@ -21,7 +21,7 @@ spec:
         # External Loki endpoint (push to nprd-apps cluster)
         - url: https://loki.dataknife.net/loki/api/v1/push
           externalLabels:
-            cluster: "cluster-a"
+            cluster: "poc-apps"
           # Add authentication if required:
           # bearer_token_file: /var/run/secrets/loki/token
           # Or basic auth:
@@ -86,7 +86,7 @@ spec:
                 replacement: /var/log/pods/$1/$2/*.log
                 target_label: __path__
     
-    # Resources for cluster-a
+    # Resources for poc-apps
     resources:
       requests:
         cpu: 100m

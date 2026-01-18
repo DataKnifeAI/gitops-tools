@@ -27,12 +27,12 @@ Each cluster overlay should override:
 ## Example Overlay Configuration
 
 ```yaml
-# observability-agents/promtail/overlays/my-cluster/promtail-helmchart.yaml
+# observability-agents/promtail/overlays/poc-apps/promtail-helmchart.yaml
 config:
   clients:
     - url: https://loki.dataknife.net/loki/api/v1/push  # External endpoint
       externalLabels:
-        cluster: "my-cluster"
+        cluster: "poc-apps"
 ```
 
 ## Deployment

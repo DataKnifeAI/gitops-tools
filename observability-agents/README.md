@@ -21,7 +21,7 @@ The observability agents are lightweight components that run on each cluster to:
         │              │
         │              │
 ┌───────┴──────────────┴───────────────────────────────────────┐
-│  Each Cluster (nprd-apps, cluster-a, cluster-b, etc.)        │
+│  Each Cluster (nprd-apps, poc-apps, prd-apps, etc.)          │
 │  ┌──────────┐  ┌─────────────────┐  ┌──────────────────┐    │
 │  │ Promtail │  │Prometheus Agent │  │ node-exporter    │    │
 │  │(Daemon)  │  │ (Remote Write)  │  │ (Daemon)         │    │
@@ -72,9 +72,9 @@ observability-agents/
         │   ├── prometheus-agent-helmchart.yaml
         │   ├── node-exporter-helmchart.yaml
         │   └── kube-state-metrics-helmchart.yaml
-        ├── cluster-a/                 # cluster-a overlay
+        ├── poc-apps/                  # poc-apps overlay
         │   └── ...
-        └── cluster-b/                 # cluster-b overlay
+        └── prd-apps/                  # prd-apps overlay
             └── ...
 ```
 
@@ -88,7 +88,7 @@ observability-agents/
 
 **Configuration**:
 - **nprd-apps**: Uses internal service endpoint (`http://loki-distributor.managed-syslog.svc.cluster.local:3100`)
-- **Other clusters**: Uses external endpoint (`https://loki.dataknife.net/loki/api/v1/push`)
+- **poc-apps, prd-apps**: Uses external endpoint (`https://loki.dataknife.net/loki/api/v1/push`)
 
 **Cluster Label**: Each overlay sets `cluster: <cluster-name>` in external labels
 
@@ -105,7 +105,7 @@ observability-agents/
 
 **Configuration**:
 - **nprd-apps**: Uses internal service endpoint (`http://prometheus-kube-prometheus-prometheus.managed-syslog.svc.cluster.local:9090/api/v1/write`)
-- **Other clusters**: Uses external endpoint (`https://prometheus.dataknife.net/api/v1/write`)
+- **poc-apps, prd-apps**: Uses external endpoint (`https://prometheus.dataknife.net/api/v1/write`)
 
 **Cluster Label**: Each overlay sets `cluster: <cluster-name>` in external labels
 
@@ -132,7 +132,7 @@ targetCustomizations:
    ```
 
 2. **Copy and customize**:
-   - Copy from existing overlay (e.g., `cluster-a`)
+   - Copy from existing overlay (e.g., `poc-apps`)
    - Update cluster name in:
      - `fleet.yaml` (clusterSelector)
      - `promtail-helmchart.yaml` (externalLabels.cluster)
@@ -148,7 +148,7 @@ targetCustomizations:
 
 ### Remote Cluster Configuration
 
-For clusters that don't have direct access to nprd-apps:
+For clusters (poc-apps, prd-apps) that don't have direct access to nprd-apps:
 
 1. **Configure external endpoints** in overlay:
    - Loki: `https://loki.dataknife.net/loki/api/v1/push`
@@ -181,7 +181,7 @@ For clusters that don't have direct access to nprd-apps:
 
 ### Internal (Same Cluster)
 
-**nprd-apps cluster only**:
+**nprd-apps cluster only** (central platform):
 - Loki: Internal service (`loki-distributor.managed-syslog.svc.cluster.local:3100`)
 - Prometheus: Internal service (`prometheus-kube-prometheus-prometheus.managed-syslog.svc.cluster.local:9090`)
 

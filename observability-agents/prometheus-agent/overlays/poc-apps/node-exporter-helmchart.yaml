@@ -1,4 +1,4 @@
-# Node Exporter Helm Chart Configuration - cluster-a Overlay
+# Node Exporter Helm Chart Configuration - poc-apps Overlay
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:

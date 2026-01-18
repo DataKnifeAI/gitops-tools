@@ -1,6 +1,6 @@
-# Prometheus Agent Helm Chart Configuration - cluster-b Overlay
+# Prometheus Agent Helm Chart Configuration - prd-apps Overlay
 #
-# Cluster-specific configuration for cluster-b
+# Cluster-specific configuration for prd-apps
 # Uses external endpoint to push metrics to central Prometheus on nprd-apps cluster
 #
 apiVersion: helm.cattle.io/v1
@@ -13,7 +13,7 @@ spec:
   repo: https://prometheus-community.github.io/helm-charts
   targetNamespace: managed-syslog
   valuesContent: |-
-    # Prometheus Agent Configuration - cluster-b
+    # Prometheus Agent Configuration - prd-apps
     # Uses external endpoint to push metrics to central Prometheus
     
     agent:
@@ -25,7 +25,7 @@ spec:
     config:
       global:
         external_labels:
-          cluster: "cluster-b"
+          cluster: "prd-apps"
       
       # External Prometheus endpoint (push to nprd-apps cluster)
       remote_write:
@@ -66,7 +66,7 @@ spec:
             - replacement: 'kube-state-metrics'
               target_label: job
     
-    # Resources for cluster-b
+    # Resources for prd-apps
     resources:
       requests:
         cpu: 200m
