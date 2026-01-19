@@ -14,12 +14,9 @@ metadata:
     managed-by: gitops
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Using default ingress certificate - no explicit TLS secret needed
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - loki.dataknife.net
-      secretName: wildcard-dataknife-net-tls
   rules:
     - host: loki.dataknife.net
       http:

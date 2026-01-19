@@ -12,10 +12,8 @@ spec:
       type: ingress
       tls:
         enabled: true
-        certSource: secret
-        secret:
-          secretName: wildcard-dataknife-net-tls
-          notarySecretName: wildcard-dataknife-net-tls
+        certSource: auto
+        # Using default ingress certificate - no explicit TLS secret needed
       ingress:
         hosts:
           core: harbor.dataknife.net
@@ -24,8 +22,6 @@ spec:
         annotations:
           nginx.ingress.kubernetes.io/ssl-redirect: "true"
           nginx.ingress.kubernetes.io/proxy-body-size: "0"
-          # Note: TLS secret 'wildcard-dataknife-net-tls' must be created manually for internal DNS
-          # Use the generate-wildcard-cert.sh script to create a cluster-wide wildcard certificate
     externalURL: https://harbor.dataknife.net
     # Harbor admin password - NOTE: Helm chart does NOT update existing admin passwords
     # The default password is "Harbor12345" and works after initial deployment
