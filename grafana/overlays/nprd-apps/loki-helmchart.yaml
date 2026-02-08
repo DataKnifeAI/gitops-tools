@@ -137,8 +137,9 @@ spec:
     
     # Ingester - Processes and stores log data temporarily
     # Note: persistence uses claims[] - storageClass/size must be per-claim
+    # replicas: 3 for zoneAwareReplication (1 per zone)
     ingester:
-      replicas: 1
+      replicas: 3
       persistence:
         enabled: true
         claims:

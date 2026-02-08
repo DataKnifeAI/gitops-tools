@@ -120,7 +120,7 @@ spec:
           memory: 1Gi
     
     ingester:
-      replicas: 1
+      replicas: 3
       persistence:
         enabled: true
         claims:
