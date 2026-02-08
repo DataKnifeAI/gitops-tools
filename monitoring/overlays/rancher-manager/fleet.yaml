@@ -1,0 +1,11 @@
+# Fleet configuration for rancher-manager cluster
+# Deploys Promtail and Prometheus to rancher-manager
+# Promtail pushes to remote Loki (nprd-apps, via ingress)
+#
+defaultNamespace: grafana
+
+targetCustomizations:
+  - name: rancher-manager
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: rancher-manager

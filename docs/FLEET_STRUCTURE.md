@@ -12,6 +12,10 @@ paths:
   - gitlab-runner/overlays/nprd-apps
   - harbor/overlays/nprd-apps
   - grafana/overlays/nprd-apps
+  - monitoring/overlays/nprd-apps
+  - monitoring/overlays/poc-apps
+  - monitoring/overlays/prd-apps
+  - monitoring/overlays/rancher-manager
 ```
 
 ## Why Overlay-Only Monitoring?
@@ -66,25 +70,33 @@ Each overlay directory contains **all necessary files** (copied from base):
 │           ├── postgresql-cluster.yaml       # Copied from base
 │           └── postgresql-database.yaml      # Copied from base
 │
-└── grafana/
-    ├── base/                    # Base configuration (reference only)
-    │   ├── fleet.yaml
-    │   ├── kustomization.yaml
-    │   ├── namespace.yaml
-    │   ├── loki-helmchart.yaml
+├── grafana/
+│   ├── base/                    # Base configuration (reference only)
+│   │   ├── fleet.yaml
+│   │   ├── kustomization.yaml
+│   │   ├── namespace.yaml
+│   │   ├── loki-helmchart.yaml
+│   │   ├── grafana-helmchart.yaml
+│   │   └── README.md
+│   └── overlays/
+│       └── nprd-apps/           # Cluster-specific overlay (deployed)
+│           ├── fleet.yaml
+│           ├── kustomization.yaml
+│           ├── loki-helmchart.yaml
+│           ├── grafana-helmchart.yaml
+│           ├── loki-ingress.yaml
+│           └── vector-*.yaml    # Syslog for UniFi CEF
+│
+└── monitoring/                  # Promtail + Prometheus (per-cluster)
+    ├── base/
     │   ├── promtail-helmchart.yaml
-    │   ├── grafana-helmchart.yaml
     │   ├── prometheus-helmchart.yaml
-    │   └── README.md
+    │   └── namespace.yaml
     └── overlays/
-        └── nprd-apps/           # Cluster-specific overlay (deployed)
-            ├── fleet.yaml
-            ├── kustomization.yaml
-            ├── loki-helmchart.yaml
-            ├── promtail-helmchart.yaml
-            ├── grafana-helmchart.yaml
-            ├── prometheus-helmchart.yaml
-            └── vector-*.yaml    # Syslog for UniFi CEF
+        ├── nprd-apps/           # Loki in-cluster
+        ├── poc-apps/            # Loki remote
+        ├── prd-apps/            # Loki remote
+        └── rancher-manager/     # Loki remote
 ```
 
 ## Key Patterns

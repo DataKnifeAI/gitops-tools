@@ -1,0 +1,11 @@
+# Fleet configuration for poc-apps cluster
+# Deploys Promtail and Prometheus to poc-apps
+# Promtail pushes to remote Loki (nprd-apps, via ingress)
+#
+defaultNamespace: grafana
+
+targetCustomizations:
+  - name: poc-apps
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: poc-apps

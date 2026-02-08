@@ -11,6 +11,10 @@ spec:
     - gitlab-runner/overlays/nprd-apps
     - harbor/overlays/nprd-apps
     - grafana/overlays/nprd-apps
+    - monitoring/overlays/nprd-apps
+    - monitoring/overlays/poc-apps
+    - monitoring/overlays/prd-apps
+    - monitoring/overlays/rancher-manager
   # Note: Monitoring overlay directories only (not root or base)
   # This prevents Fleet from creating duplicate bundles for base and overlay
   # Each overlay contains all necessary files (copied from base)

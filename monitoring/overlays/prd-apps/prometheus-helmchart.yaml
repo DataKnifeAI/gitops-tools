@@ -1,7 +1,7 @@
-# Prometheus Stack (kube-prometheus-stack) - nprd-apps
+# Prometheus Stack (kube-prometheus-stack) - prd-apps
 #
-# Deploys Prometheus, node-exporter, kube-state-metrics for metrics.
-# Grafana is disabled - we use the Grafana from grafana-helmchart.
+# Deploys Prometheus, node-exporter, kube-state-metrics.
+# Grafana disabled - use centralized Grafana on nprd-apps.
 #
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -22,7 +22,6 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: truenas-csi-nfs
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
