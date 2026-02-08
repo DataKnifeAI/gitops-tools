@@ -142,6 +142,6 @@ spec:
         cpu: 1000m
         memory: 1Gi
     image:
-      registry: harbor.dataknife.net
-      repository: dockerhub/grafana/promtail
+      registry: docker.io
+      repository: grafana/promtail
       tag: "3.6.2"

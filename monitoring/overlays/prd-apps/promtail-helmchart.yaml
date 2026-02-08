@@ -142,7 +142,6 @@ spec:
       limits:
         cpu: 1000m
         memory: 1Gi
-    # Use public image (prd-apps may not have Harbor access)
     image:
       registry: docker.io
       repository: grafana/promtail
