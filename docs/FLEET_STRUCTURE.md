@@ -4,18 +4,42 @@ This document explains the Fleet GitOps structure and how deployments are organi
 
 ## Current Fleet Configuration
 
-The Fleet GitRepo monitors **overlay directories only** to prevent bundle conflicts:
+Fleet uses **separate GitRepos per cluster** because GitRepo targets apply to all bundles. Broadening targets would deploy grafana/harbor/gitlab-runner (nprd-apps only) to other clusters, causing conflicts.
+
+### GitRepos
+
+| GitRepo | Targets | Paths |
+|---------|---------|-------|
+| `gitops-tools-nprd-apps` | nprd-apps | gitlab-runner, harbor, grafana, monitoring/nprd-apps |
+| `gitops-tools-poc-apps` | poc-apps | monitoring/overlays/poc-apps |
+| `gitops-tools-prd-apps` | prd-apps | monitoring/overlays/prd-apps |
+
+**Apply poc-apps and prd-apps GitRepos** (from rancher-manager context):
+
+```bash
+kubectl --context rancher-manager apply -f fleet-gitrepo-poc-apps.yaml
+kubectl --context rancher-manager apply -f fleet-gitrepo-prd-apps.yaml
+```
+
+### Paths (per GitRepo)
+
+Overlay directories only to prevent bundle conflicts:
 
 ```yaml
+# gitops-tools-nprd-apps
 paths:
-  - github-runner/overlays/nprd-apps
   - gitlab-runner/overlays/nprd-apps
   - harbor/overlays/nprd-apps
   - grafana/overlays/nprd-apps
   - monitoring/overlays/nprd-apps
+
+# gitops-tools-poc-apps
+paths:
   - monitoring/overlays/poc-apps
+
+# gitops-tools-prd-apps
+paths:
   - monitoring/overlays/prd-apps
-  - monitoring/overlays/rancher-manager
 ```
 
 ## Why Overlay-Only Monitoring?

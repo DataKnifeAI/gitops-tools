@@ -67,13 +67,16 @@ spec:
                   - namespace
                   - app
                 target_label: job
-              # RKE2/containerd: log files at /var/log/pods/<uid>/*.log (no container subdir)
+              # RKE2/containerd: /var/log/pods/<namespace>_<pod>_<uid>/<container>/*.log
               - action: replace
                 source_labels:
+                  - __meta_kubernetes_namespace
+                  - __meta_kubernetes_pod_name
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
-                regex: (.+);(.+)
-                replacement: /var/log/pods/*$1/*.log
+                separator: ;
+                regex: (.+);(.+);(.+);(.+)
+                replacement: /var/log/pods/$1_$2_$3/$4/*.log
                 target_label: __path__
               - action: replace
                 source_labels:
@@ -115,13 +118,16 @@ spec:
                   - namespace
                   - app
                 target_label: job
-              # RKE2/containerd: second __path__ block - use $1/*.log (no container subdir)
+              # RKE2/containerd: __path__ (second block, same pattern)
               - action: replace
                 source_labels:
+                  - __meta_kubernetes_namespace
+                  - __meta_kubernetes_pod_name
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
-                regex: (.+);(.+)
-                replacement: /var/log/pods/*$1/*.log
+                separator: ;
+                regex: (.+);(.+);(.+);(.+)
+                replacement: /var/log/pods/$1_$2_$3/$4/*.log
                 target_label: __path__
     resources:
       requests:

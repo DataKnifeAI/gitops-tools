@@ -1,0 +1,29 @@
+# Fleet GitRepo for prd-apps cluster
+# Deploys monitoring (Promtail + Prometheus) to prd-apps
+# Promtail pushes to remote Loki at https://loki.dataknife.net
+#
+# Apply from rancher-manager context:
+#   kubectl --context rancher-manager apply -f fleet-gitrepo-prd-apps.yaml
+#
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: gitops-tools-prd-apps
+  namespace: fleet-default
+  labels:
+    app: gitops-tools
+    cluster: prd-apps
+    managed-by: gitops
+spec:
+  repo: https://github.com/DataKnifeAI/gitops-tools.git
+  branch: main
+  paths:
+    - monitoring/overlays/prd-apps
+  targets:
+    - clusterSelector:
+        matchLabels:
+          management.cattle.io/cluster-display-name: prd-apps
+  clientSecretName: github-credentials
+  correctDrift:
+    enabled: true
+  keepResources: true

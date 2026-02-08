@@ -26,12 +26,22 @@ monitoring/
 | prd-apps         | `https://loki.dataknife.net` (remote)   | default 50Gi         |
 | rancher-manager  | `https://loki.dataknife.net` (remote)   | default 50Gi         |
 
-## Fleet Paths
+## Fleet GitRepos
 
-Fleet GitRepo monitors:
-- `monitoring/overlays/nprd-apps`
-- `monitoring/overlays/poc-apps`
-- `monitoring/overlays/prd-apps`
-- `monitoring/overlays/rancher-manager`
+Monitoring uses **separate GitRepos per cluster** (see [FLEET_STRUCTURE.md](../docs/FLEET_STRUCTURE.md)):
 
-Add new cluster overlays by creating `monitoring/overlays/<cluster-name>/` and adding the path to `fleet-gitrepo.yaml`.
+| GitRepo | Cluster | Path |
+|---------|---------|------|
+| gitops-tools-nprd-apps | nprd-apps | monitoring/overlays/nprd-apps |
+| gitops-tools-poc-apps | poc-apps | monitoring/overlays/poc-apps |
+| gitops-tools-prd-apps | prd-apps | monitoring/overlays/prd-apps |
+
+**Apply poc-apps/prd-apps GitRepos** (one-time, from rancher-manager context):
+
+```bash
+# From repo root
+kubectl --context rancher-manager apply -f fleet-gitrepo-poc-apps.yaml
+kubectl --context rancher-manager apply -f fleet-gitrepo-prd-apps.yaml
+```
+
+Add new cluster overlays by creating `monitoring/overlays/<cluster-name>/` and a corresponding `fleet-gitrepo-<cluster>.yaml`.
