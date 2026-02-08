@@ -2,7 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: harbor-postgresql
-  namespace: managed-tools
+  namespace: harbor
   labels:
     app: harbor
     component: database
@@ -43,7 +43,7 @@ spec:
   # Storage configuration
   storage:
     size: 20Gi
-    storageClass: "truenas-nfs"  # Use truenas-nfs storage class
+    storageClass: "truenas-csi-nfs"  # Use new CSI driver
   
   # Resource requests and limits
   resources:
