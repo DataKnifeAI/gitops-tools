@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: grafana
 
 resources:
-  - namespace.yaml
+  # namespace created by grafana overlay (nprd-apps has both)
   - promtail-helmchart.yaml
   - prometheus-helmchart.yaml
 
