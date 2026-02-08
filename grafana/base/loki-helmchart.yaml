@@ -81,8 +81,10 @@ spec:
       retentionDeleteWorkerCount: 150
       persistence:
         enabled: true
-        storageClass: truenas-csi-nfs
-        size: 50Gi
+        claims:
+          - name: data
+            size: 50Gi
+            storageClass: truenas-csi-nfs
     
     gateway:
       enabled: false
@@ -121,8 +123,10 @@ spec:
       replicas: 1
       persistence:
         enabled: true
-        storageClass: truenas-csi-nfs
-        size: 50Gi
+        claims:
+          - name: data
+            size: 50Gi
+            storageClass: truenas-csi-nfs
       resources:
         requests:
           cpu: 1000m

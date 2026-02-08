@@ -85,8 +85,10 @@ spec:
       retentionDeleteWorkerCount: 150
       persistence:
         enabled: true
-        storageClass: truenas-csi-nfs
-        size: 250Gi  # Sized for 2 weeks retention + growth
+        claims:
+          - name: data
+            size: 250Gi  # Sized for 2 weeks retention + growth
+            storageClass: truenas-csi-nfs
         # Storage sizing:
         # Base: 2 UniFi instances @ ~250MB/day each = 7GB for 14 days
         # With overhead: ~10.5GB
@@ -134,12 +136,15 @@ spec:
           memory: 1Gi
     
     # Ingester - Processes and stores log data temporarily
+    # Note: persistence uses claims[] - storageClass/size must be per-claim
     ingester:
       replicas: 1
       persistence:
         enabled: true
-        storageClass: truenas-csi-nfs
-        size: 250Gi  # Sized for 2 weeks retention + growth
+        claims:
+          - name: data
+            size: 250Gi  # Sized for 2 weeks retention + growth
+            storageClass: truenas-csi-nfs
       resources:
         requests:
           cpu: 1000m

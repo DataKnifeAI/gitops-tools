@@ -153,7 +153,7 @@ docker pull harbor.dataknife.net/library/my-image:latest
 
 ### Storage Class
 
-- **Storage Class**: `truenas-nfs` (default)
+- **Storage Class**: `truenas-csi-nfs` (default)
 - **Volume Expansion**: ✅ Supported (`allowVolumeExpansion: true`)
 - **Access Mode**: ReadWriteOnce (RWO)
 
@@ -193,25 +193,25 @@ Commit and push. Fleet will update the HelmChart, and Harbor will recreate the P
 
 ### Option 2: Expand Existing PVC (No Data Loss)
 
-If the storage class supports volume expansion (truenas-nfs does), you can expand the PVC directly:
+If the storage class supports volume expansion (truenas-csi-nfs does), you can expand the PVC directly:
 
 ```bash
 # Expand registry PVC
-kubectl patch pvc harbor-registry -n managed-tools \
+kubectl patch pvc harbor-registry -n harbor \
   -p '{"spec":{"resources":{"requests":{"storage":"400Gi"}}}}'
 
 # Wait for expansion to complete
-kubectl wait --for=condition=FileSystemResizePending pvc/harbor-registry -n managed-tools --timeout=5m
+kubectl wait --for=condition=FileSystemResizePending pvc/harbor-registry -n harbor --timeout=5m
 
 # Restart registry pod to apply new size
-kubectl rollout restart deployment harbor-registry -n managed-tools
+kubectl rollout restart deployment harbor-registry -n harbor
 ```
 
 ### Option 3: Manual PVC Expansion
 
 1. Edit the PVC:
    ```bash
-   kubectl edit pvc harbor-registry -n managed-tools
+   kubectl edit pvc harbor-registry -n harbor
    ```
 
 2. Update the `spec.resources.requests.storage` field
@@ -225,20 +225,20 @@ kubectl rollout restart deployment harbor-registry -n managed-tools
 ### Check PVC Sizes
 
 ```bash
-kubectl get pvc -n managed-tools -o custom-columns=NAME:.metadata.name,SIZE:.spec.resources.requests.storage,USED:.status.capacity.storage
+kubectl get pvc -n harbor -o custom-columns=NAME:.metadata.name,SIZE:.spec.resources.requests.storage,USED:.status.capacity.storage
 ```
 
 ### Check Storage Usage Inside Pods
 
 ```bash
 # Registry storage usage
-kubectl exec -n managed-tools deployment/harbor-registry -c registry -- df -h /storage
+kubectl exec -n harbor deployment/harbor-registry -c registry -- df -h /storage
 
 # Chartmuseum storage usage
-kubectl exec -n managed-tools deployment/harbor-chartmuseum -c chartmuseum -- df -h /chart_storage
+kubectl exec -n harbor deployment/harbor-chartmuseum -c chartmuseum -- df -h /chart_storage
 
 # Trivy storage usage
-kubectl exec -n managed-tools statefulset/harbor-trivy -c trivy -- df -h /var/lib/trivy
+kubectl exec -n harbor statefulset/harbor-trivy -c trivy -- df -h /var/lib/trivy
 ```
 
 ### Harbor UI
@@ -346,7 +346,7 @@ If a PVC is full:
 
 If storage class doesn't support expansion:
 
-1. Check storage class: `kubectl get storageclass truenas-nfs -o yaml`
+1. Check storage class: `kubectl get storageclass truenas-csi-nfs -o yaml`
 2. Look for `allowVolumeExpansion: true`
 3. If false, you'll need to recreate the PVC (backup data first)
 
