@@ -22,6 +22,8 @@ spec:
       enabled: true
       storageClass: truenas-csi-nfs
       size: 10Gi
+    initChownData:
+      enabled: false  # NFS with root_squash doesn't support chown
     resources:
       requests:
         cpu: 200m
