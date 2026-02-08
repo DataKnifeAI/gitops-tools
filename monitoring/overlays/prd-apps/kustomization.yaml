@@ -5,9 +5,9 @@ namespace: grafana
 
 resources:
   - namespace.yaml
-  - loki-helmchart.yaml
-  - grafana-helmchart.yaml
+  - promtail-helmchart.yaml
+  - prometheus-helmchart.yaml
 
 commonLabels:
-  app: loki
+  app: monitoring
   managed-by: gitops

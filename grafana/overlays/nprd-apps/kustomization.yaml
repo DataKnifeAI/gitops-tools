@@ -6,9 +6,7 @@ namespace: grafana
 resources:
   - namespace.yaml
   - loki-helmchart.yaml
-  - promtail-helmchart.yaml
   - grafana-helmchart.yaml
-  - prometheus-helmchart.yaml
   - loki-ingress.yaml
   # Vector syslog receiver for UniFi CEF ingestion
   - vector-configmap.yaml

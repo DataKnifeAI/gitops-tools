@@ -1,9 +1,7 @@
-# Promtail Helm Chart Configuration (Reference)
+# Promtail Helm Chart Configuration - poc-apps Overlay
 #
-# Deploys Promtail (log collection agent) using the official Grafana Promtail Helm chart
-# Overlay customizes: resources
-# Official repository: https://grafana.github.io/helm-charts
-# Chart: https://github.com/grafana/helm-charts/tree/main/charts/promtail
+# Cluster-specific: Loki remote (nprd-apps via ingress)
+# Log path: RKE2/containerd assumed
 #
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -15,11 +13,9 @@ spec:
   repo: https://grafana.github.io/helm-charts
   targetNamespace: grafana
   valuesContent: |-
-    # Promtail Configuration - Latest stable version 3.6.2 (matches Loki)
     config:
       clients:
-        # Using distributor directly for microservices mode
-        - url: http://loki-distributor:3100/loki/api/v1/push
+        - url: https://loki.dataknife.net/loki/api/v1/push
       snippets:
         scrapeConfigs: |
           - job_name: kubernetes-pods
@@ -124,7 +120,7 @@ spec:
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
                 regex: (.+);(.+)
-                replacement: /var/log/pods/*$1/$2/*.log
+                replacement: /var/log/pods/*$1/*.log
                 target_label: __path__
     resources:
       requests:
@@ -136,4 +132,4 @@ spec:
     image:
       registry: harbor.dataknife.net
       repository: dockerhub/grafana/promtail
-      tag: "3.6.2"  # Matches Loki
+      tag: "3.6.2"

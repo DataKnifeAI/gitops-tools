@@ -1,0 +1,10 @@
+# Fleet configuration for nprd-apps cluster
+# Deploys Promtail and Prometheus to nprd-apps
+#
+defaultNamespace: grafana
+
+targetCustomizations:
+  - name: nprd-apps
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: nprd-apps

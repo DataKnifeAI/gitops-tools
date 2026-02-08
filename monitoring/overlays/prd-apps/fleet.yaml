@@ -1,0 +1,11 @@
+# Fleet configuration for prd-apps cluster
+# Deploys Promtail and Prometheus to prd-apps
+# Promtail pushes to remote Loki (nprd-apps, via ingress)
+#
+defaultNamespace: grafana
+
+targetCustomizations:
+  - name: prd-apps
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: prd-apps

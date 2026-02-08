@@ -39,17 +39,16 @@ data:
         inputs:
           - syslog_udp
         source: |
-          # Handle raw socket data - extract message field
-          message_text = string!(.message)
+          # Drop non-string messages (e.g. from malformed syslog)
+          if !is_string(.message) { abort }
+          message_text = .message
+          if message_text == "" { abort }
           # Check if message contains CEF (might have syslog prefix)
-          # Extract CEF portion if present, otherwise use full message
-          cef_match = match(message_text, r'CEF:.*')
-          # Initialize cef_message to ensure it's always defined
-          cef_message = message_text
-          if cef_match != null {
-            cef_message = string!(cef_match)
-          }
-          if match(cef_message, r'^CEF:') {
+          cef_match = match!(message_text, r'CEF:.*')
+          cef_message = if cef_match != null { cef_match } else { message_text }
+          cef_message, err = to_string(cef_message)
+          if err != null { abort }
+          if match!(cef_message, r'^CEF:') {
             parts = split(cef_message, "|")
             if length(parts) >= 7 {
               if length(parts) > 1 { .device_vendor = parts[1] }
