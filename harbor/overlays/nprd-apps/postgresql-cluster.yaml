@@ -8,7 +8,13 @@ metadata:
     component: database
     managed-by: gitops
 spec:
-  instances: 2
+  instances: 3
+  # Omit fsGroup for NFS — kubelet applyFSGroup fails when initdb creates pgdata with 700.
+  # With dataset 0777, postgres (UID 26) can access the volume directly.
+  podSecurityContext:
+    runAsUser: 26
+    runAsGroup: 26
+    runAsNonRoot: true
   # PostgreSQL version - using 16.2 (latest stable)
   imageName: ghcr.io/cloudnative-pg/postgresql:16.2
   
