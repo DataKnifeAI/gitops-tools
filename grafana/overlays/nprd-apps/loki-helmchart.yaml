@@ -87,6 +87,8 @@ spec:
         enabled: true
         claims:
           - name: data
+            accessModes:
+              - ReadWriteOnce
             size: 250Gi  # Sized for 2 weeks retention + growth
             storageClass: truenas-csi-nfs
         # Storage sizing:
@@ -144,6 +146,8 @@ spec:
         enabled: true
         claims:
           - name: data
+            accessModes:
+              - ReadWriteOnce
             size: 250Gi  # Sized for 2 weeks retention + growth
             storageClass: truenas-csi-nfs
       resources:

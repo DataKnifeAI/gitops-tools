@@ -83,6 +83,8 @@ spec:
         enabled: true
         claims:
           - name: data
+            accessModes:
+              - ReadWriteOnce
             size: 50Gi
             storageClass: truenas-csi-nfs
     
@@ -125,6 +127,8 @@ spec:
         enabled: true
         claims:
           - name: data
+            accessModes:
+              - ReadWriteOnce
             size: 50Gi
             storageClass: truenas-csi-nfs
       resources:
