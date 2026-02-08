@@ -2,11 +2,11 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: harbor
-  namespace: managed-tools
+  namespace: harbor
 spec:
   chart: harbor
   repo: https://helm.goharbor.io
-  targetNamespace: managed-tools
+  targetNamespace: harbor
   valuesContent: |-
     expose:
       type: ingress
@@ -61,27 +61,27 @@ spec:
       resourcePolicy: "keep"
       persistentVolumeClaim:
         registry:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 400Gi  # Main storage for container images (80% of 500GB allocation)
         chartmuseum:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 50Gi  # Helm chart storage (10% of 500GB allocation)
         jobservice:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 1Gi  # Job data and logs (reduced from 5Gi to match Harbor defaults and avoid PVC shrink errors)
         database:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 1Gi  # Note: PostgreSQL has separate 20Gi x 2 = 40Gi storage
         redis:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 5Gi  # Redis cache data (1% of 500GB allocation)
         trivy:
-          storageClass: ""
+          storageClass: truenas-csi-nfs
           accessMode: ReadWriteOnce
           size: 40Gi  # Vulnerability scan data (8% of 500GB allocation)
     core:

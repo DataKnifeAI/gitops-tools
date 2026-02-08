@@ -2,7 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: registry
-  namespace: managed-tools
+  namespace: harbor
   labels:
     app: harbor
     component: database
