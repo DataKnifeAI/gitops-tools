@@ -19,12 +19,14 @@ monitoring/
 
 ## Cluster Overlays
 
-| Cluster          | Promtail Loki URL                       | Prometheus Storage   |
-|------------------|-----------------------------------------|----------------------|
-| nprd-apps        | `http://loki-distributor:3100` (in-cluster) | truenas-csi-nfs 50Gi |
-| poc-apps         | `https://loki.dataknife.net` (remote)   | default 50Gi         |
-| prd-apps         | `https://loki.dataknife.net` (remote)   | default 50Gi         |
-| rancher-manager  | `https://loki.dataknife.net` (remote)   | default 50Gi         |
+| Cluster          | Namespace  | Promtail Loki URL                       | Prometheus Storage   |
+|------------------|------------|-----------------------------------------|----------------------|
+| nprd-apps        | grafana    | `http://loki-distributor:3100` (in-cluster) | truenas-csi-nfs 50Gi |
+| poc-apps         | monitoring | `https://loki.dataknife.net` (remote)   | default 50Gi         |
+| prd-apps         | monitoring | `https://loki.dataknife.net` (remote)   | default 50Gi         |
+| rancher-manager  | grafana    | `https://loki.dataknife.net` (remote)   | default 50Gi         |
+
+poc-apps and prd-apps use `monitoring` namespace to avoid conflicts with orphaned grafana/loki HelmCharts.
 
 ## Fleet GitRepos
 

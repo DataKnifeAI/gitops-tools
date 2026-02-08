@@ -7,11 +7,11 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: prometheus
-  namespace: grafana
+  namespace: monitoring
 spec:
   chart: kube-prometheus-stack
   repo: https://prometheus-community.github.io/helm-charts
-  targetNamespace: grafana
+  targetNamespace: monitoring
   valuesContent: |-
     grafana:
       enabled: false
