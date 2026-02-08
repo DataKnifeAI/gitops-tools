@@ -10,7 +10,9 @@ spec:
   valuesContent: |-
     expose:
       type: ingress
-      # Using default ingress certificate - no TLS section needed
+      tls:
+        enabled: true
+        certSource: none  # Use ingress controller default cert (Let's Encrypt wildcard)
       ingress:
         hosts:
           core: harbor.dataknife.net
