@@ -72,7 +72,7 @@ spec:
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
                 regex: (.+);(.+)
-                replacement: /var/log/pods/$1/*.log
+                replacement: /var/log/pods/*$1/*.log
                 target_label: __path__
               - action: replace
                 regex: true
@@ -135,7 +135,7 @@ spec:
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
                 regex: (.+);(.+)
-                replacement: /var/log/pods/$1/$2/*.log
+                replacement: /var/log/pods/*$1/$2/*.log
                 target_label: __path__
     # Resources
     resources:
