@@ -1,0 +1,29 @@
+# Fleet GitRepo for poc-apps cluster
+# Deploys monitoring (Promtail + Prometheus) to poc-apps
+# Promtail pushes to remote Loki at https://loki.dataknife.net
+#
+# Apply from rancher-manager context:
+#   kubectl --context rancher-manager apply -f fleet-gitrepo-poc-apps.yaml
+#
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: gitops-tools-poc-apps
+  namespace: fleet-default
+  labels:
+    app: gitops-tools
+    cluster: poc-apps
+    managed-by: gitops
+spec:
+  repo: https://github.com/DataKnifeAI/gitops-tools.git
+  branch: main
+  paths:
+    - monitoring/overlays/poc-apps
+  targets:
+    - clusterSelector:
+        matchLabels:
+          management.cattle.io/cluster-display-name: poc-apps
+  clientSecretName: github-credentials
+  correctDrift:
+    enabled: true
+  keepResources: true
