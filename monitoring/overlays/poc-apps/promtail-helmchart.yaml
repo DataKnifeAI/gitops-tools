@@ -7,11 +7,11 @@ apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
   name: promtail
-  namespace: grafana
+  namespace: monitoring
 spec:
   chart: promtail
   repo: https://grafana.github.io/helm-charts
-  targetNamespace: grafana
+  targetNamespace: monitoring
   valuesContent: |-
     config:
       clients:
@@ -24,6 +24,11 @@ spec:
             kubernetes_sd_configs:
               - role: pod
             relabel_configs:
+              # DaemonSet: only tail pods on this node
+              - action: replace
+                source_labels:
+                  - __meta_kubernetes_pod_node_name
+                target_label: __host__
               - source_labels:
                   - __meta_kubernetes_pod_controller_name
                 regex: ([0-9a-z-.]+?)(-[0-9a-f]+)?$
@@ -119,12 +124,16 @@ spec:
                   - namespace
                   - app
                 target_label: job
+              # RKE2/containerd: __path__ (second block, same pattern)
               - action: replace
                 source_labels:
+                  - __meta_kubernetes_namespace
+                  - __meta_kubernetes_pod_name
                   - __meta_kubernetes_pod_uid
                   - __meta_kubernetes_pod_container_name
-                regex: (.+);(.+)
-                replacement: /var/log/pods/*$1/*.log
+                separator: ;
+                regex: (.+);(.+);(.+);(.+)
+                replacement: /var/log/pods/$1_$2_$3/$4/*.log
                 target_label: __path__
     resources:
       requests:

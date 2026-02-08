@@ -33,11 +33,11 @@ paths:
   - grafana/overlays/nprd-apps
   - monitoring/overlays/nprd-apps
 
-# gitops-tools-poc-apps
+# gitops-tools-poc-apps (uses monitoring namespace to avoid grafana conflicts)
 paths:
   - monitoring/overlays/poc-apps
 
-# gitops-tools-prd-apps
+# gitops-tools-prd-apps (uses monitoring namespace)
 paths:
   - monitoring/overlays/prd-apps
 ```
