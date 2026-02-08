@@ -41,7 +41,7 @@ spec:
           chunks: loki-chunks
           ruler: loki-ruler
         s3:
-          endpoint: http://192.168.9.10:30292
+          endpoint: https://rustfs.dataknife.net:30292
           region: us-east-1
           accessKeyId: ${accessKeyId}
           secretAccessKey: ${secretAccessKey}
@@ -62,7 +62,7 @@ spec:
         chunks: loki-chunks
         ruler: loki-ruler
       s3:
-        endpoint: http://192.168.9.10:30292
+        endpoint: https://rustfs.dataknife.net:30292
         region: us-east-1
         accessKeyId: ${accessKeyId}
         secretAccessKey: ${secretAccessKey}
