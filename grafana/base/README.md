@@ -1,6 +1,6 @@
-# Loki Base Configuration
+# Grafana Base Configuration
 
-Base configuration for Loki Stack deployment using Helm charts.
+Base configuration for Loki Stack deployment using Helm charts. **Promtail and Prometheus** are in [monitoring/base/](../monitoring/base/).
 
 ## Structure
 
@@ -11,28 +11,25 @@ grafana/
 │   ├── kustomization.yaml
 │   ├── namespace.yaml
 │   ├── loki-helmchart.yaml        # Reference – overlay has RustFS S3 config
-│   ├── promtail-helmchart.yaml
 │   ├── grafana-helmchart.yaml
-│   ├── prometheus-helmchart.yaml  # Metrics (kube-prometheus-stack)
 │   └── README.md
 └── overlays/
     └── nprd-apps/                 # nprd-apps cluster overlay (deployed by Fleet)
         ├── fleet.yaml
         ├── kustomization.yaml
         ├── loki-helmchart.yaml
-        ├── promtail-helmchart.yaml
         ├── grafana-helmchart.yaml
-        ├── prometheus-helmchart.yaml
+        ├── loki-ingress.yaml
         └── vector-*.yaml          # Syslog receiver for UniFi CEF
 ```
 
 ## Components
 
-The Loki Stack includes three main components:
-
 1. **Loki**: Log aggregation system (replacement for OpenSearch/Elasticsearch)
-2. **Promtail**: Log collection agent (replacement for Filebeat/Logstash)
-3. **Grafana**: Visualization and query interface (replacement for Graylog UI)
+2. **Grafana**: Visualization and query interface (replacement for Graylog UI)
+3. **Vector**: Syslog receiver for UniFi CEF (nprd-apps overlay only)
+
+**Promtail** and **Prometheus** are deployed via [monitoring/](../monitoring/).
 
 ## Configuration
 
@@ -44,13 +41,6 @@ Base files are **reference only** – Fleet deploys from the overlay. The overla
 - **Retention**: Configurable retention period (default 7 days)
 - **Scalability**: Can scale horizontally by increasing replicas
 - **Query Performance**: Optimized for log queries with LogQL query language
-
-### Promtail Features
-
-- **Automatic Discovery**: Discovers pods via Kubernetes service discovery
-- **Label Extraction**: Automatically extracts labels from pod metadata
-- **Multi-line Log Support**: Handles multi-line log entries
-- **Relabeling**: Flexible log routing and filtering
 
 ### Grafana Features
 
@@ -107,8 +97,8 @@ topk(10, sum by (app) (count_over_time({}[5m])))
 When replacing Graylog/OpenSearch with Loki:
 
 1. **Stop Graylog ingestion**: Disable log forwarding to Graylog
-2. **Deploy Loki Stack**: Deploy this configuration
-3. **Verify Promtail**: Ensure Promtail is collecting logs from all namespaces
+2. **Deploy Grafana Stack**: Deploy this configuration and [monitoring/](../monitoring/) for Promtail
+3. **Verify Promtail**: Ensure Promtail (from monitoring overlay) is collecting logs from all namespaces
 4. **Configure Grafana**: Set up dashboards and alerts in Grafana
 5. **Update Applications**: Update applications to use Loki endpoints if needed
 6. **Archive Old Logs**: Export important logs from Graylog before decommissioning
@@ -116,6 +106,6 @@ When replacing Graylog/OpenSearch with Loki:
 ## Documentation
 
 - [Loki Documentation](https://grafana.com/docs/grafana/latest/)
-- [Promtail Documentation](https://grafana.com/docs/grafana/latest/clients/promtail/)
+- [Promtail Documentation](https://grafana.com/docs/grafana/latest/clients/promtail/) (deployed via monitoring/)
 - [LogQL Documentation](https://grafana.com/docs/grafana/latest/logql/)
 - [Grafana Loki Helm Chart](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack)

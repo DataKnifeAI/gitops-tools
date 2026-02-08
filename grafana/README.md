@@ -1,14 +1,14 @@
-# Loki Stack
+# Grafana Stack (Loki + Grafana + Vector)
 
-This directory contains GitOps configurations for deploying the Loki Stack (Loki + Promtail + Grafana) to replace Graylog/OpenSearch for log aggregation and visualization.
+This directory contains GitOps configurations for deploying Loki, Grafana, and Vector to the nprd-apps cluster. **Promtail and Prometheus** are deployed separately via the [monitoring/](../monitoring/) folder with per-cluster overlays.
 
 ## Overview
 
-The Loki Stack provides a modern, cloud-native logging solution that replaces the traditional Graylog/OpenSearch stack:
+The Grafana Stack provides log aggregation and visualization:
 
 - **Loki**: Log aggregation system (replaces OpenSearch/Elasticsearch)
-- **Promtail**: Log collection agent (replaces Filebeat/Logstash)
 - **Grafana**: Visualization and query interface (replaces Graylog UI)
+- **Vector**: Syslog receiver for UniFi CEF ingestion
 
 ## Why Loki?
 
@@ -53,7 +53,6 @@ grafana/
 │   ├── kustomization.yaml
 │   ├── namespace.yaml
 │   ├── loki-helmchart.yaml
-│   ├── promtail-helmchart.yaml
 │   ├── grafana-helmchart.yaml
 │   └── README.md
 └── overlays/
@@ -61,8 +60,12 @@ grafana/
         ├── fleet.yaml
         ├── kustomization.yaml
         ├── loki-helmchart.yaml    # Loki Helm chart (RustFS S3)
-        └── grafana-ingress.yaml  # Grafana ingress (fallback)
+        ├── loki-ingress.yaml
+        ├── grafana-helmchart.yaml
+        └── vector-*.yaml          # Syslog receiver for UniFi CEF
 ```
+
+**Promtail and Prometheus** are in [monitoring/](../monitoring/) with overlays for nprd-apps, poc-apps, prd-apps, and rancher-manager.
 
 ## Components
 
@@ -77,12 +80,7 @@ Log aggregation system that stores and indexes logs efficiently:
 
 ### Promtail
 
-Log collection agent that runs as a DaemonSet:
-
-- **Automatic Discovery**: Discovers pods via Kubernetes service discovery
-- **Label Extraction**: Automatically extracts labels from pod metadata
-- **Multi-line Support**: Handles multi-line log entries
-- **Relabeling**: Flexible log routing and filtering
+Deployed via [monitoring/](../monitoring/) (not this folder). Log collection agent that runs as a DaemonSet on each cluster.
 
 ### Grafana
 
@@ -175,9 +173,8 @@ To change retention, update `reject_old_samples_max_age` and `max_look_back_peri
 - Requests: 1000m CPU, 2Gi memory
 - Limits: 4000m CPU, 8Gi memory
 
-**Promtail** (nprd-apps):
-- Requests: 200m CPU, 256Mi memory
-- Limits: 1000m CPU, 1Gi memory
+**Promtail** (see [monitoring/](../monitoring/)):
+- Deployed per-cluster; nprd-apps uses in-cluster Loki; others use remote
 
 **Grafana** (nprd-apps):
 - Requests: 200m CPU, 256Mi memory
@@ -220,8 +217,8 @@ sum(rate({} |= "error" [5m])) by (namespace)
 
 ### Migration Steps
 
-1. **Deploy Loki Stack**: Deploy this configuration alongside Graylog
-2. **Verify Collection**: Ensure Promtail is collecting logs from all namespaces
+1. **Deploy Grafana Stack**: Deploy this configuration (and [monitoring/](../monitoring/) for Promtail) alongside Graylog
+2. **Verify Collection**: Ensure Promtail (from monitoring overlay) is collecting logs from all namespaces
 3. **Test Queries**: Verify LogQL queries work correctly
 4. **Configure Dashboards**: Set up Grafana dashboards for common queries
 5. **Update Applications**: Update applications to use Loki endpoints if needed
@@ -254,20 +251,22 @@ source:api AND http_status_code:500
 
 ### Promtail Not Collecting Logs
 
+Promtail is deployed via the [monitoring/](../monitoring/) overlay. To troubleshoot:
+
 1. Check Promtail pods:
    ```bash
-   kubectl get pods -n grafana -l app=promtail
-   kubectl logs -n grafana -l app=promtail
+   kubectl get pods -n grafana -l app.kubernetes.io/name=promtail
+   kubectl logs -n grafana -l app.kubernetes.io/name=promtail
    ```
 
 2. Verify Promtail has access to node logs:
    ```bash
-   kubectl describe daemonset promtail -n grafana
+   kubectl describe daemonset -n grafana -l app.kubernetes.io/name=promtail
    ```
 
 3. Check Promtail configuration:
    ```bash
-   kubectl get configmap loki-stack-promtail -n grafana -o yaml
+   kubectl get configmap -n grafana -l app.kubernetes.io/name=promtail -o yaml
    ```
 
 ### Loki Not Receiving Logs

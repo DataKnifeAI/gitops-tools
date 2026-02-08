@@ -1,19 +1,19 @@
 # Grafana Stack Documentation
 
-Documentation for the Grafana stack (Loki, Grafana, Promtail, Vector) deployed via Fleet to the nprd-apps cluster.
+Documentation for the Grafana stack (Loki, Grafana, Vector) deployed via Fleet. **Promtail and Prometheus** are deployed separately via [monitoring/](../../monitoring/).
 
 ## Overview
 
-| Component | Purpose |
-|-----------|---------|
-| **Loki** | Log aggregation (S3 storage via RustFS on TrueNAS) |
-| **Grafana** | Visualization, dashboards (LogQL + Prometheus) |
-| **Prometheus** | Metrics (kube-prometheus-stack, Grafana disabled) |
-| **Promtail** | Kubernetes pod log collection (DaemonSet) |
-| **Vector** | Syslog receiver for UniFi CEF format |
+| Component | Purpose | Fleet Path |
+|-----------|---------|------------|
+| **Loki** | Log aggregation (S3 storage via RustFS on TrueNAS) | grafana/overlays/nprd-apps |
+| **Grafana** | Visualization, dashboards (LogQL + Prometheus) | grafana/overlays/nprd-apps |
+| **Vector** | Syslog receiver for UniFi CEF format | grafana/overlays/nprd-apps |
+| **Promtail** | Kubernetes pod log collection (DaemonSet) | monitoring/overlays/\<cluster\> |
+| **Prometheus** | Metrics (kube-prometheus-stack, Grafana disabled) | monitoring/overlays/\<cluster\> |
 
-**Namespace:** `grafana`  
-**Cluster:** nprd-apps (Fleet path: `grafana/overlays/nprd-apps`)
+**Namespace:** `grafana` (shared by grafana and monitoring bundles)  
+**Clusters:** nprd-apps (grafana stack); nprd-apps, poc-apps, prd-apps, rancher-manager (monitoring)
 
 ## Storage: RustFS (S3)
 

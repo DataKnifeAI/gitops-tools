@@ -106,13 +106,17 @@ Each overlay directory contains **all necessary files** (copied from base):
 Each overlay's `kustomization.yaml` references **local files** (not `../base/`):
 
 ```yaml
-# ✅ CORRECT (Harbor, GitHub Runner, GitLab Runner, Loki)
+# ✅ CORRECT (grafana overlay - Loki, Grafana, Vector)
 resources:
-  - harbor-helmchart.yaml
-  - postgresql-cluster.yaml
   - loki-helmchart.yaml
-  - promtail-helmchart.yaml
   - grafana-helmchart.yaml
+  - loki-ingress.yaml
+  - vector-*.yaml
+
+# ✅ CORRECT (monitoring overlay - Promtail, Prometheus)
+resources:
+  - promtail-helmchart.yaml
+  - prometheus-helmchart.yaml
 
 # ❌ WRONG (causes Fleet errors)
 resources:
