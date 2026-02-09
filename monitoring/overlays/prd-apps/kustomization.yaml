@@ -5,7 +5,7 @@ namespace: monitoring
 
 resources:
   - namespace.yaml
-  - promtail-helmchart.yaml
+  - alloy-helmchart.yaml
   - prometheus-helmchart.yaml
 
 commonLabels:

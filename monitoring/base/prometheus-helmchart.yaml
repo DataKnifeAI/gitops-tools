@@ -15,8 +15,11 @@ spec:
   valuesContent: |-
     grafana:
       enabled: false
+    prometheus-node-exporter:
+      enabled: false
     prometheus:
       prometheusSpec:
+        enableRemoteWriteReceiver: true
         retention: 15d
     alertmanager:
       enabled: false
