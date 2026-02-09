@@ -38,17 +38,52 @@ spec:
         content: |
           loki.write "default" { endpoint { url = "http://loki-distributor:3100/loki/api/v1/push" } }
           prometheus.remote_write "prometheus" { endpoint { url = "http://prometheus-kube-prometheus-prometheus:9090/api/v1/write" } }
-          discovery.kubernetes "pod" { role = "pod"; selectors { role = "pod"; field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname) } }
+          discovery.kubernetes "pod" {
+            role = "pod"
+            selectors {
+              role = "pod"
+              field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+            }
+          }
           discovery.relabel "pod_logs" {
             targets = discovery.kubernetes.pod.targets
-            rule { source_labels = ["__meta_kubernetes_namespace"]; target_label = "namespace"; action = "replace" }
-            rule { source_labels = ["__meta_kubernetes_pod_name"]; target_label = "pod"; action = "replace" }
-            rule { source_labels = ["__meta_kubernetes_pod_container_name"]; target_label = "container"; action = "replace" }
-            rule { source_labels = ["namespace", "app"]; separator = "/"; regex = "(.+)"; target_label = "job"; replacement = "$1"; action = "replace" }
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              target_label = "namespace"
+              action = "replace"
+            }
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label = "pod"
+              action = "replace"
+            }
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_name"]
+              target_label = "container"
+              action = "replace"
+            }
+            rule {
+              source_labels = ["namespace", "app"]
+              separator = "/"
+              regex = "(.+)"
+              target_label = "job"
+              replacement = "$1"
+              action = "replace"
+            }
           }
-          loki.source.kubernetes "pod_logs" { targets = discovery.relabel.pod_logs.output; forward_to = [loki.write.default.receiver] }
-          prometheus.exporter.unix "localhost" { procfs_path = "/host/proc"; sysfs_path = "/host/sys"; include_exporter_metrics = true }
-          prometheus.scrape "unix" { targets = prometheus.exporter.unix.localhost.targets; forward_to = [prometheus.remote_write.prometheus.receiver] }
+          loki.source.kubernetes "pod_logs" {
+            targets = discovery.relabel.pod_logs.output
+            forward_to = [loki.write.default.receiver]
+          }
+          prometheus.exporter.unix "localhost" {
+            procfs_path = "/host/proc"
+            sysfs_path = "/host/sys"
+            include_exporter_metrics = true
+          }
+          prometheus.scrape "unix" {
+            targets = prometheus.exporter.unix.localhost.targets
+            forward_to = [prometheus.remote_write.prometheus.receiver]
+          }
       resources:
         requests: { cpu: 300m, memory: 384Mi }
         limits: { cpu: 1000m, memory: 1Gi }
