@@ -88,4 +88,4 @@ spec:
     image:
       registry: docker.io
       repository: grafana/alloy
-      tag: "1.6.2"
+      tag: "v1.12.2"
