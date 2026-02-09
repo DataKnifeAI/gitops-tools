@@ -23,11 +23,6 @@ spec:
             kubernetes_sd_configs:
               - role: pod
             relabel_configs:
-              # DaemonSet: only tail pods on this node
-              - action: replace
-                source_labels:
-                  - __meta_kubernetes_pod_node_name
-                target_label: __host__
               - source_labels:
                   - __meta_kubernetes_pod_controller_name
                 regex: ([0-9a-z-.]+?)(-[0-9a-f]+)?$
