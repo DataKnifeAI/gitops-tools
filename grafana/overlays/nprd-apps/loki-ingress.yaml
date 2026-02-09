@@ -2,6 +2,8 @@
 #
 # Exposes Loki API and UI via ingress for external access
 # Access Loki at https://loki.dataknife.net
+# - Push traffic (Alloy/Promtail) -> loki-distributor
+# - Query traffic (Grafana, UI) -> loki-query-frontend
 #
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -21,6 +23,13 @@ spec:
     - host: loki.dataknife.net
       http:
         paths:
+          - path: /loki/api/v1/push
+            pathType: Prefix
+            backend:
+              service:
+                name: loki-distributor
+                port:
+                  number: 3100
           - path: /
             pathType: Prefix
             backend:
