@@ -16,8 +16,12 @@ spec:
     grafana:
       enabled: false
     
+    prometheus-node-exporter:
+      enabled: false
+    
     prometheus:
       prometheusSpec:
+        enableRemoteWriteReceiver: true
         retention: 15d
         storageSpec:
           volumeClaimTemplate:
