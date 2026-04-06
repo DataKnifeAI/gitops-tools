@@ -32,6 +32,11 @@ spec:
     
     loki:
       auth_enabled: false
+      podSecurityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        fsGroup: null
       storage:
         type: s3
         bucketNames:
