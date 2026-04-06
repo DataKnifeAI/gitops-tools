@@ -21,6 +21,13 @@ spec:
       size: 10Gi
     initChownData:
       enabled: false  # NFS with root_squash doesn't support chown
+    # Chart defaults fsGroup: 472; kubelet applyFSGroup on truenas-csi-nfs fails (permission denied).
+    # Explicit fsGroup: null prevents coalescing the default; runAs* matches grafana image user.
+    securityContext:
+      runAsUser: 472
+      runAsGroup: 472
+      runAsNonRoot: true
+      fsGroup: null
     resources:
       requests:
         cpu: 200m

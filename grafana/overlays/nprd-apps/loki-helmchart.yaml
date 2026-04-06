@@ -35,6 +35,13 @@ spec:
     
     loki:
       auth_enabled: false
+      # NFS PVCs (ingester/index/ruler/compactor): omit fsGroup so kubelet does not applyFSGroup
+      # (same failure mode as Grafana). runAs* matches chart defaults for loki process user.
+      podSecurityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        fsGroup: null
       storage:
         type: s3
         bucketNames:
