@@ -67,14 +67,9 @@ spec:
             [runners.kubernetes.pod_annotations]
               "container.apparmor.security.beta.kubernetes.io/build" = "unconfined"
             
-            # Mount Harbor CA certificate for Docker registry access
-            # Uses harbor-ca-cert secret with only the CA certificate (no private key)
-            # This allows job pods to pull/push images from Harbor registry
-            # Docker expects the certificate at: /etc/docker/certs.d/<registry-hostname>/ca.crt
-            [[runners.kubernetes.volumes.secret]]
-              name = "harbor-ca-cert"
-              mount_path = "/etc/docker/certs.d/harbor.dataknife.net"
-              read_only = true
+            # Harbor (harbor.dataknife.net) uses the public Let's Encrypt chain on ingress.
+            # Job pods verify registry TLS with the image default CA bundle — do not mount
+            # /etc/docker/certs.d/harbor.dataknife.net (avoids stale or mismatched custom CA).
       
       # Runner tags (for group-level runner)
       tags: "kubernetes,managed-cicd,docker"
