@@ -319,6 +319,30 @@ According to the [Harbor documentation](https://goharbor.io/docs/main/administra
 
 ## Troubleshooting
 
+### Intermittent TLS / `certificate has expired` to `harbor.dataknife.net`
+
+Harbor ingress TLS is the **wildcard** cert in `kube-system/wildcard-dataknife-net-tls`, served by **rke2-ingress-nginx** (`hostPort` 443 on each node that runs a controller pod). If **DNS round-robins** to many node IPs, **one dead or unmanaged host** can still answer `:443` with an **old** certificate while the rest present the renewed Let’s Encrypt chain.
+
+**Diagnose (run from any machine with `openssl`):**
+
+```bash
+for ip in 192.168.14.113 192.168.14.114 192.168.14.115 192.168.14.116 \
+          192.168.14.117 192.168.14.118 192.168.14.110 192.168.14.111 192.168.14.112; do
+  printf "%s " "$ip"
+  echo | openssl s_client -connect "$ip":443 -servername harbor.dataknife.net 2>/dev/null \
+    | openssl x509 -noout -enddate 2>/dev/null || echo "no_tls"
+done
+```
+
+All lines must show the **same** `notAfter` as the current wildcard secret. Any IP with an **older** `notAfter` is a straggler.
+
+**Fix:**
+
+1. **Map the IP to a node** (`kubectl get nodes -o wide` — internal IP matches the VIP used for ingress).
+2. If the node is **NotReady** / kubelet dead but **still serves TLS on 443**, that process is **outside** the current ingress pod set (stale `nginx-ingress` / host networking). **Remove that IP from DNS** for `harbor.dataknife.net` (and any shared worker pool name such as `nprd-apps-wk.dataknife.net`) until the host is repaired or rebooted so only healthy nodes remain in the pool.
+3. **Cluster-side:** `kubectl cordon <node>` stops new workloads; it does **not** stop an existing host process bound to 443. Prefer **DNS removal** or **node power-cycle / repair** so the bad listener goes away.
+4. After the node is healthy again: `kubectl uncordon <node>`, confirm **one** ingress pod is scheduled there (`kubectl get pods -n kube-system -l app.kubernetes.io/name=rke2-ingress-nginx -o wide`), and re-add the IP to DNS only if OpenSSL matches the other nodes.
+
 ### Proxy cache option is greyed out in UI
 - This is expected behavior - proxy cache can only be enabled when creating a project
 - Solution: Delete the project and recreate it with proxy cache enabled using `./scripts/harbor-setup.sh proxy`

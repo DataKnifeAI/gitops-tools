@@ -17,6 +17,11 @@ In Kubernetes clusters, **worker nodes should be preferred for external traffic*
 - `192.168.14.113` (nprd-apps-worker-1)
 - `192.168.14.114` (nprd-apps-worker-2)
 - `192.168.14.115` (nprd-apps-worker-3)
+- `192.168.14.116` (nprd-apps-worker-4)
+- `192.168.14.117` (nprd-apps-worker-5)
+- `192.168.14.118` (nprd-apps-worker-6)
+
+**DNS and dead nodes:** If a worker IP is included in round-robin DNS but the node is **NotReady** or otherwise unhealthy, it can still expose **stale TLS** on port **443** (for example an old ingress `hostPort` listener). That causes **intermittent** `x509` errors for hostnames such as `harbor.dataknife.net`. **Omit that IP from DNS** until the node is repaired, or follow the Harbor TLS straggler steps in `docs/HARBOR.md`.
 
 ## Ingress Controller
 
