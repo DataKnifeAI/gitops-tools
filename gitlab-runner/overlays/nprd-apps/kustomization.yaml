@@ -5,10 +5,8 @@ namespace: managed-cicd
 
 resources:
   - gitlab-runner-helmchart.yaml
-  - containerd-harbor-cert-daemonset.yaml
-  # harbor-ca-cert + DaemonSet: node-level containerd/RKE2 trust for pulling from Harbor.
-  # CI job pods no longer mount certs.d for Harbor (public LE chain via system roots).
-  # Refresh secret if node pulls fail: ./scripts/sync-harbor-ca-cert.sh
+  # Harbor (harbor.dataknife.net) uses a public TLS chain. Node and job trust rely on
+  # default CA bundles — no privileged DaemonSet or harbor-ca-cert secret in GitOps.
 
 # Cluster-specific overrides for nprd-apps
 # Add any nprd-apps specific configurations here
