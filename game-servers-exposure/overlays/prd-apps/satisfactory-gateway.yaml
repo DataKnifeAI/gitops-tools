@@ -1,0 +1,33 @@
+# Dedicated Gateway VIP for Satisfactory (TCP+UDP 7777 collide with Windrose if shared).
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: satisfactory-gateway
+  labels:
+    app.kubernetes.io/name: satisfactory-server
+    app.kubernetes.io/component: envoy-gateway
+spec:
+  gatewayClassName: envoy
+  # Request VIPs from kube-vip pool (see kube-vip namespace ConfigMap `kubevip` range-global).
+  addresses:
+    - type: IPAddress
+      value: 192.168.14.185
+  listeners:
+    - name: game-udp
+      protocol: UDP
+      port: 7777
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: game-tcp
+      protocol: TCP
+      port: 7777
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: beacon
+      protocol: TCP
+      port: 7778
+      allowedRoutes:
+        namespaces:
+          from: Same

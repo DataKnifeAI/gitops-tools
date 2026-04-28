@@ -1,0 +1,41 @@
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: windrose-game-tcp
+spec:
+  parentRefs:
+    - name: windrose-gateway
+      namespace: game-servers
+      sectionName: game-tcp
+  rules:
+    - backendRefs:
+        - name: windrose-server-envoy
+          port: 7777
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: UDPRoute
+metadata:
+  name: windrose-game-udp
+spec:
+  parentRefs:
+    - name: windrose-gateway
+      namespace: game-servers
+      sectionName: game-udp
+  rules:
+    - backendRefs:
+        - name: windrose-server-envoy
+          port: 7777
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: windrose-dashboard
+spec:
+  parentRefs:
+    - name: windrose-gateway
+      namespace: game-servers
+      sectionName: dashboard
+  rules:
+    - backendRefs:
+        - name: windrose-server-envoy
+          port: 8780

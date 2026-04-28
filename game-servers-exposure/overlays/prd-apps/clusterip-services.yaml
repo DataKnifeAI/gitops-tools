@@ -1,0 +1,52 @@
+# ClusterIP backends for Envoy Gateway (avoid double LoadBalancer / pending VIP on game Services).
+# Selectors match DataKnife game-server deployments in game-servers.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: satisfactory-server-envoy
+  labels:
+    app.kubernetes.io/name: satisfactory-server
+    app.kubernetes.io/component: envoy-backend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: satisfactory-server
+  ports:
+    - name: game-udp
+      port: 7777
+      targetPort: game-udp
+      protocol: UDP
+    - name: game-tcp
+      port: 7777
+      targetPort: game-tcp
+      protocol: TCP
+    - name: beacon
+      port: 7778
+      targetPort: beacon
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: windrose-server-envoy
+  labels:
+    app.kubernetes.io/name: windrose-server
+    app.kubernetes.io/component: envoy-backend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: windrose-server
+  ports:
+    - name: game-tcp
+      port: 7777
+      targetPort: game-tcp
+      protocol: TCP
+    - name: game-udp
+      port: 7777
+      targetPort: game-udp
+      protocol: UDP
+    - name: dashboard
+      port: 8780
+      targetPort: dashboard
+      protocol: TCP

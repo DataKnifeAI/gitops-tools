@@ -1,0 +1,9 @@
+# Fleet bundle: Envoy Gateway + ClusterIP services for game-servers on prd-apps.
+# Apply via gitops-tools-prd-apps GitRepo (see fleet-gitrepo-prd-apps.yaml).
+defaultNamespace: game-servers
+
+targetCustomizations:
+  - name: prd-apps
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: prd-apps

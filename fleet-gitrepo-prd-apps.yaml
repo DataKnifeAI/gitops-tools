@@ -19,6 +19,7 @@ spec:
   branch: main
   paths:
     - monitoring/overlays/prd-apps
+    - game-servers-exposure/overlays/prd-apps
   targets:
     - clusterSelector:
         matchLabels:
