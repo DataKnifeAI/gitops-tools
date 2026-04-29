@@ -40,8 +40,13 @@ Two hostnames require **two VIPs** because both games use **TCP 7777**; a single
 
 Fleet path: `game-servers-exposure/overlays/prd-apps` (see `fleet-gitrepo-prd-apps.yaml`).
 
+**Why these manifests live in `gitops-tools` (not the game server repos):** Fleet already deploys **`paths`** from this repo to **prd-apps** (monitoring, game exposure, etc.). Platform objects (**`Gateway`**, **`EnvoyProxy`**, routes, extra `Service`s) belong with **cluster-scoped** integration and change on **infra timelines**, not on every game image release. The game repos keep **portable `deploy/`** and **documentation + examples**; this repo holds the **canonical apply set** for DataKnife. Forks can copy the overlay or translate the pattern from `docs/examples/` in each game repo.
+
 - **`satisfactory-server-envoy` / `windrose-server-envoy`**: **ClusterIP** `Service`s with the same selectors as the game Deployments. Envoy routes to these (avoid relying on the original `LoadBalancer` Services, which may stay `<pending>` without MetalLB).
 - **`Gateway` + `TCPRoute` / `UDPRoute`**: attach to `GatewayClass` **`envoy`** (`gateway.envoyproxy.io/gatewayclass-controller`).
+- **`EnvoyProxy`** (`game-satisfactory-kubevip`, `game-windrose-kubevip`): per above, required for kube-vip L2 bind with TCP+UDP Gateways.
+
+**Duplicate files:** The same *pattern* is documented in each game repo under **`docs/examples/`** (placeholders: `EXTERNAL_VIP`, `LOAD_BALANCER_IP`). Only **this overlay** should be edited for production VIPs and Fleet; update the game-repo examples when the pattern changes so open-source users are not misled.
 
 ## Verification
 
