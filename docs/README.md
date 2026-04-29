@@ -27,6 +27,9 @@ This directory contains comprehensive documentation for all tools and services m
 - **[Fleet Sync](FLEET_SYNC.md)** - Agent registration and bundle sync troubleshooting
 - **[Fleet Structure](FLEET_STRUCTURE.md)** - GitOps paths and overlay pattern
 
+### Gateway / game servers (manual apply)
+- **[Game servers: Envoy + kube-vip](GAME_SERVERS_ENVOY.md)** - pointers to **`deploy/envoy/`** in **satisfactory-server-k8s** and **windrose-server-k8s** (not deployed via Fleet from this repo)
+
 ### General
 - **[Deployment Guide](DEPLOYMENT.md)** - General deployment procedures
 - **[Changelog](CHANGELOG.md)** - Project changelog
