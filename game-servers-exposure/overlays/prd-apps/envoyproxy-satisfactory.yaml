@@ -1,0 +1,20 @@
+# Per-Gateway EnvoyProxy so the managed Service uses spec.loadBalancerIP (kube-vip)
+# instead of only spec.externalIPs. See Envoy Gateway gateway-address task and
+# https://github.com/envoyproxy/gateway/issues/5012 (on-prem / kube-vip).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: game-satisfactory-kubevip
+  labels:
+    app.kubernetes.io/name: satisfactory-server
+    app.kubernetes.io/component: envoy-gateway
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+        loadBalancerIP: 192.168.14.185
+        # VIP is held on control-plane nodes by kube-vip; Envoy pod may run on a worker.
+        # Cluster lets any node accept LB traffic and forward to the pod.
+        externalTrafficPolicy: Cluster

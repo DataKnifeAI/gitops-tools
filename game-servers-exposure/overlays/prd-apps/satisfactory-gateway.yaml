@@ -8,6 +8,11 @@ metadata:
     app.kubernetes.io/component: envoy-gateway
 spec:
   gatewayClassName: envoy
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: game-satisfactory-kubevip
   # Request VIPs from kube-vip pool (see kube-vip namespace ConfigMap `kubevip` range-global).
   addresses:
     - type: IPAddress

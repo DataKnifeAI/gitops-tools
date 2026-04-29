@@ -2,6 +2,10 @@
 
 Satisfactory and Windrose use **fixed game ports** (7777 TCP/UDP, plus Satisfactory **7778 TCP** and optional Windrose **8780 TCP**). Envoy Gateway on **prd-apps** exposes them via **Gateway API** (`Gateway`, `TCPRoute`, `UDPRoute`) with **kube-vip** assigning a **LoadBalancer VIP per Gateway** (same pattern as `high-command-gateway`).
 
+### kube-vip bind (EnvoyProxy + `loadBalancerIP`)
+
+For `Gateway.spec.addresses` with **TCP and UDP** listeners, Envoy Gateway can materialize the Envoy `Service` using **`spec.externalIPs` only**, which **kube-vip does not ARP-bind** on the node. To get **`status.loadBalancer.ingress`** (so kube-vip programs **`spec.loadBalancerIP`** and binds on **`eth0`**), each game `Gateway` references a namespaced **`EnvoyProxy`** via **`spec.infrastructure.parametersRef`** that sets `provider.kubernetes.envoyService.loadBalancerIP` to the same VIP and **`externalTrafficPolicy: Cluster`** (Envoy pods may run on workers while kube-vip holds the VIP on control-plane nodes). See `envoyproxy-satisfactory.yaml` and `envoyproxy-windrose.yaml` in this overlay.
+
 ## Hostnames and DNS
 
 Use these FQDNs (correct spelling **`satisfactory`**, not `satifactory`):
