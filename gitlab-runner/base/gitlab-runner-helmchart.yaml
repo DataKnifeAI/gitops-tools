@@ -87,10 +87,10 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration (chart 0.89+ uses registry/image/tag fields)
+    # Image configuration — chart default (registry.gitlab.com/gitlab-org/gitlab-runner)
     image:
-      registry: harbor.dataknife.net
-      image: dockerhub/gitlab/gitlab-runner
+      registry: registry.gitlab.com
+      image: gitlab-org/gitlab-runner
       tag: alpine-v19.0.0
     imagePullPolicy: IfNotPresent
     

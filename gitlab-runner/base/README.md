@@ -133,7 +133,7 @@ Cache is configured to use Kubernetes volumes:
 Harbor is reachable at `harbor.dataknife.net` with a **public TLS chain** (for example Let’s Encrypt on ingress). Trust is **not** managed by GitOps in this overlay:
 
 1. **Job pods** (BuildKit, registry login, and so on) use the **image default CA bundle**. We **do not** mount `/etc/docker/certs.d/harbor.dataknife.net` in job pods, so TLS is not tied to a stale custom CA file in the cluster.
-2. **Node image pulls** (for example the runner image `harbor.dataknife.net/dockerhub/gitlab/gitlab-runner`, or any `image:` that points at Harbor) rely on **RKE2/containerd default trust** for that public chain. No `harbor-ca-cert` secret or `containerd-harbor-cert-config` DaemonSet is deployed here.
+2. **Node image pulls** for the runner manager use the chart default `registry.gitlab.com/gitlab-org/gitlab-runner`. Job images that point at Harbor rely on **RKE2/containerd default trust** for Harbor’s public TLS chain. No `harbor-ca-cert` secret or `containerd-harbor-cert-config` DaemonSet is deployed here.
 
 If Harbor ever uses a **private CA** or a hostname that nodes do not trust by default, you would need an explicit trust story (for example install the issuing CA on nodes, or reintroduce a maintained `registries.yaml` / certs.d workflow that matches the live certificate).
 
