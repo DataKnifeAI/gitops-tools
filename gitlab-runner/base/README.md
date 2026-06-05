@@ -15,55 +15,51 @@ GitLab Runner executes GitLab CI/CD jobs in Kubernetes pods. Each job runs in a 
 ## Prerequisites
 
 1. **GitLab Instance**: Access to a GitLab instance (GitLab.com or self-hosted)
-2. **Runner Registration Token**: Obtain a registration token from your GitLab project, group, or instance
+2. **Runner Authentication Token**: Obtain a `glrt-*` authentication token by creating a runner in GitLab UI
 3. **Kubernetes Cluster**: Access to a Kubernetes cluster with:
    - RBAC enabled
    - Ability to create pods and services
 
 ## Installation
 
-### Step 1: Obtain Runner Registration Token
+### Step 1: Obtain Runner Authentication Token
+
+Registration tokens are deprecated. Create a runner in GitLab UI and copy the `glrt-*` authentication token.
 
 **For Project-level Runner:**
-1. Go to your GitLab project
-2. Navigate to **Settings** → **CI/CD** → **Runners**
-3. Expand **Expand runners settings**
-4. Copy the **Registration token**
+1. Go to your GitLab project → **Settings** → **CI/CD** → **Runners**
+2. Click **New runner** and copy the authentication token
 
 **For Group-level Runner:**
-1. Go to your GitLab group
-2. Navigate to **Settings** → **CI/CD** → **Runners**
-3. Copy the **Registration token**
+1. Go to your GitLab group → **Settings** → **CI/CD** → **Runners**
+2. Click **New runner** and copy the authentication token
 
 **For Instance-level Runner:**
 1. Go to **Admin Area** → **Overview** → **Runners**
-2. Copy the **Registration token**
+2. Click **New runner** and copy the authentication token
 
 ### Step 2: Create Runner Token Secret
 
-Create a Kubernetes secret with the runner token:
-
 ```bash
-# Create secret with runner registration token
+# Create secret with runner authentication token
 kubectl create secret generic gitlab-runner-secret \
-  --from-literal=runner-registration-token='<YOUR_RUNNER_TOKEN>' \
+  --from-literal=runner-registration-token="" \
+  --from-literal=runner-token='glrt-<YOUR_RUNNER_AUTH_TOKEN>' \
   -n managed-cicd
 ```
 
-Alternatively, you can update the HelmChart to use the token directly (not recommended for production).
+Or use the setup script:
+
+```bash
+RUNNER_TOKEN=glrt-xxx ./scripts/runner-setup.sh gitlab
+```
 
 ### Step 3: Update Configuration
 
 Update `gitlab-runner-helmchart.yaml` with:
 - `gitlabUrl`: Your GitLab instance URL (e.g., `https://gitlab.com` or `https://gitlab.example.com`)
-- `runnerRegistrationToken`: Set to your runner token (or use Fleet HelmChartConfig to inject from secret)
 
-To use the secret, you can:
-1. Use Fleet HelmChartConfig to inject the token from the secret
-2. Or manually extract and set the token:
-   ```bash
-   kubectl get secret gitlab-runner-secret -n managed-cicd -o jsonpath='{.data.runner-registration-token}' | base64 -d
-   ```
+The runner token is referenced via `runners.secret: gitlab-runner-secret` (never committed to git).
 
 ### Step 4: Deploy Runner
 

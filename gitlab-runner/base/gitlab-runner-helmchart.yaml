@@ -5,6 +5,7 @@ metadata:
   namespace: managed-cicd
 spec:
   chart: gitlab-runner
+  version: 0.89.0
   repo: https://charts.gitlab.io
   targetNamespace: managed-cicd
   valuesContent: |-
@@ -15,13 +16,10 @@ spec:
     gitlabUrl: https://gitlab.com
     # Or for self-hosted: https://gitlab.example.com
     
-    # Runner registration token
-    # Token extracted from secret: gitlab-runner-secret
-          # runnerRegistrationToken: "" # Set via Fleet HelmChartConfig or extract from secret
-          # To extract from secret:
-          # kubectl get secret gitlab-runner-secret -n managed-cicd -o jsonpath='{.data.runner-registration-token}' | base64 -d
-    # To use a secret, you can also set it via Fleet HelmChartConfig or
-    # update this value directly with the token from the secret
+    # Runner authentication token (glrt-*) is stored in gitlab-runner-secret.
+    # Create the runner in GitLab UI, then:
+    #   ./scripts/runner-setup.sh gitlab
+    #   ./scripts/runner-config.sh
     
     # RBAC configuration
     rbac:
@@ -33,6 +31,9 @@ spec:
     
     # Runner configuration
     runners:
+      # Reference pre-created secret with runner-token (glrt-* authentication token)
+      secret: gitlab-runner-secret
+
       # Kubernetes executor configuration
       config: |
         [[runners]]
@@ -86,12 +87,12 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration
+    # Image configuration (chart 0.89+ uses registry/image/tag fields)
     image:
-      # GitLab Runner image
-      repository: harbor.dataknife.net/dockerhub/gitlab/gitlab-runner
-      tag: ""
-      pullPolicy: IfNotPresent
+      registry: harbor.dataknife.net
+      image: dockerhub/gitlab/gitlab-runner
+      tag: alpine-v19.0.0
+    imagePullPolicy: IfNotPresent
     
     # Check interval for new jobs
     checkInterval: 30

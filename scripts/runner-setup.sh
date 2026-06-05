@@ -84,16 +84,24 @@ create_gitlab_secret() {
     if [ -z "$GITLAB_URL" ] || [ -z "$GITLAB_TOKEN" ]; then
         echo "For group-level runner (RaaS group), you need:"
         echo "  - GitLab instance URL"
-        echo "  - Group runner registration token"
+        echo "  - Runner authentication token (glrt-*) from GitLab UI"
+        echo ""
+        echo "Create the runner in GitLab: Settings → CI/CD → Runners → New runner"
         echo ""
         read -p "Enter GitLab instance URL (e.g., https://gitlab.com): " GITLAB_URL
-        read -sp "Enter GitLab Group Runner Registration Token: " GITLAB_TOKEN
+        read -sp "Enter GitLab Runner Authentication Token (glrt-*): " GITLAB_TOKEN
         echo ""
         
         if [ -z "$GITLAB_TOKEN" ]; then
             echo -e "${RED}Error: GitLab token cannot be empty${NC}"
             exit 1
         fi
+    fi
+
+    if [[ ! "$GITLAB_TOKEN" == glrt-* ]]; then
+        echo -e "${YELLOW}Warning: Token does not start with 'glrt-'. Registration tokens are deprecated.${NC}"
+        echo "Create a runner in GitLab UI and use the authentication token instead."
+        echo ""
     fi
     
     # Check if secret exists
@@ -103,7 +111,8 @@ create_gitlab_secret() {
     fi
     
     kubectl create secret generic gitlab-runner-secret \
-        --from-literal=runner-registration-token="$GITLAB_TOKEN" \
+        --from-literal=runner-registration-token="" \
+        --from-literal=runner-token="$GITLAB_TOKEN" \
         -n managed-cicd > /dev/null
     
     echo -e "${GREEN}✓ GitLab secret created${NC}"
@@ -143,7 +152,7 @@ case "$ACTION" in
         echo ""
         echo "Environment variables:"
         echo "  GITHUB_TOKEN  - GitHub Personal Access Token"
-        echo "  GITLAB_TOKEN  - GitLab runner registration token"
+        echo "  GITLAB_TOKEN  - GitLab runner authentication token (glrt-*)"
         echo "  GITLAB_URL    - GitLab instance URL"
         exit 1
         ;;
