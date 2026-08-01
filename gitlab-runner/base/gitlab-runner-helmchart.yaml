@@ -5,7 +5,8 @@ metadata:
   namespace: managed-cicd
 spec:
   chart: gitlab-runner
-  version: 0.89.0
+  # Align with GitLab.com SaaS (~19.3): chart 0.91.0 ships Runner 19.2.0
+  version: "0.91.0"
   repo: https://charts.gitlab.io
   targetNamespace: managed-cicd
   valuesContent: |-
@@ -87,11 +88,12 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration — chart default (registry.gitlab.com/gitlab-org/gitlab-runner)
+    # Image configuration — registry.gitlab.com/gitlab-org/gitlab-runner
+    # Pin 19.2.1 patch (chart appVersion defaults to alpine-v19.2.0)
     image:
       registry: registry.gitlab.com
       image: gitlab-org/gitlab-runner
-      tag: alpine-v19.0.0
+      tag: alpine-v19.2.1
     imagePullPolicy: IfNotPresent
     
     # Check interval for new jobs
