@@ -6,6 +6,8 @@ metadata:
 spec:
   chart: gitlab-runner
   repo: https://charts.gitlab.io
+  # Align with GitLab.com SaaS (~19.3): chart 0.91.0 ships Runner 19.2.0
+  version: "0.91.0"
   targetNamespace: managed-cicd
   valuesContent: |-
     # GitLab Runner configuration
@@ -117,12 +119,13 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration
+    # Image configuration (chart >=0.89 uses registry/image/tag)
+    # Matches current nprd-apps pulls from registry.gitlab.com; pin 19.2.1 patch
     image:
-      # GitLab Runner image
-      repository: harbor.dataknife.net/dockerhub/gitlab/gitlab-runner
-      tag: ""
-      pullPolicy: IfNotPresent
+      registry: registry.gitlab.com
+      image: gitlab-org/gitlab-runner
+      tag: alpine-v19.2.1
+    imagePullPolicy: IfNotPresent
     
     # Check interval for new jobs
     checkInterval: 30
