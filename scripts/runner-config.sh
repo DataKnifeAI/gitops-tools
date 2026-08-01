@@ -1,15 +1,16 @@
 #!/bin/bash
 # Runner Configuration Script
-# This script updates GitLab Runner registration token in HelmChartConfig
+# This script updates GitLab Runner authentication token in Kubernetes secret
 #
 # Usage:
 #   ./scripts/runner-config.sh
+#   RUNNER_TOKEN=glrt-xxx ./scripts/runner-config.sh
 
 set -e
 
 NAMESPACE="${NAMESPACE:-managed-cicd}"
 SECRET_NAME="${SECRET_NAME:-gitlab-runner-secret}"
-HELMCHARTCONFIG_NAME="gitlab-runner"
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-gitlab-runner}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -17,75 +18,75 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${GREEN}Updating GitLab Runner registration token in HelmChartConfig${NC}"
-echo "Token will be extracted from Kubernetes secret and applied to cluster only."
+echo -e "${GREEN}Updating GitLab Runner authentication token in Kubernetes secret${NC}"
+echo "Token will be stored in cluster only (never committed to git)."
 echo ""
 
-# Check if secret exists
-if ! kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" &>/dev/null; then
+# Get token from env or secret
+if [ -n "$RUNNER_TOKEN" ]; then
+    TOKEN="$RUNNER_TOKEN"
+    echo "Using token from RUNNER_TOKEN environment variable."
+elif kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" &>/dev/null; then
+    echo "Extracting token from existing secret..."
+    TOKEN=$(kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" \
+      -o jsonpath='{.data.runner-token}' 2>/dev/null | base64 -d || true)
+
+    if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+        # Fall back to legacy key for migration
+        TOKEN=$(kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" \
+          -o jsonpath='{.data.runner-registration-token}' | base64 -d)
+    fi
+else
     echo -e "${RED}Error: Secret '$SECRET_NAME' not found in namespace '$NAMESPACE'${NC}"
     echo ""
     echo "Create the secret first:"
-    echo "  ./scripts/runner-setup.sh gitlab"
+    echo "  RUNNER_TOKEN=glrt-xxx ./scripts/runner-setup.sh gitlab"
     exit 1
 fi
-
-# Extract token from secret
-echo "Extracting token from secret..."
-TOKEN=$(kubectl get secret "$SECRET_NAME" -n "$NAMESPACE" \
-  -o jsonpath='{.data.runner-registration-token}' | base64 -d)
 
 if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-    echo -e "${RED}Error: Failed to extract token from secret${NC}"
+    echo -e "${RED}Error: No runner token found.${NC}"
+    echo ""
+    echo "Create a runner in GitLab UI (Settings → CI/CD → Runners), copy the"
+    echo "authentication token (glrt-*), then run:"
+    echo "  RUNNER_TOKEN=glrt-xxx ./scripts/runner-setup.sh gitlab"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Token extracted successfully${NC}"
+if [[ ! "$TOKEN" == glrt-* ]]; then
+    echo -e "${YELLOW}Warning: Token does not start with 'glrt-'. Registration tokens are deprecated.${NC}"
+    echo "Create a runner in GitLab UI and use the authentication token instead."
+    echo ""
+fi
+
+echo -e "${GREEN}✓ Token validated${NC}"
 echo ""
 
-# Escape the token for YAML
-ESCAPED_TOKEN=$(echo "$TOKEN" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+# Create/update secret with new token format
+kubectl create secret generic "$SECRET_NAME" \
+  --from-literal=runner-registration-token="" \
+  --from-literal=runner-token="$TOKEN" \
+  -n "$NAMESPACE" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-# Check if HelmChartConfig exists
-if kubectl get helmchartconfig "$HELMCHARTCONFIG_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "Updating existing HelmChartConfig..."
-    TMP_FILE=$(mktemp)
-    cat > "$TMP_FILE" <<EOF
-apiVersion: helm.cattle.io/v1
-kind: HelmChartConfig
-metadata:
-  name: $HELMCHARTCONFIG_NAME
-  namespace: $NAMESPACE
-spec:
-  valuesContent: |-
-    runnerRegistrationToken: "$ESCAPED_TOKEN"
-EOF
-    kubectl apply -f "$TMP_FILE"
-    rm -f "$TMP_FILE"
+echo ""
+echo -e "${GREEN}✓ Secret updated successfully${NC}"
+echo ""
+
+# Restart runner pods to pick up new token
+if kubectl get deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE" &>/dev/null; then
+    echo "Restarting runner deployment to pick up new token..."
+    kubectl rollout restart deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE"
+    kubectl rollout status deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE" --timeout=120s
+    echo -e "${GREEN}✓ Runner deployment restarted${NC}"
 else
-    echo "Creating new HelmChartConfig..."
-    cat <<EOF | kubectl apply -f -
-apiVersion: helm.cattle.io/v1
-kind: HelmChartConfig
-metadata:
-  name: $HELMCHARTCONFIG_NAME
-  namespace: $NAMESPACE
-spec:
-  valuesContent: |-
-    runnerRegistrationToken: "$ESCAPED_TOKEN"
-EOF
+    echo -e "${YELLOW}Deployment '$DEPLOYMENT_NAME' not found yet. Fleet will deploy on next sync.${NC}"
 fi
 
 echo ""
-echo -e "${GREEN}✓ HelmChartConfig updated successfully${NC}"
-echo ""
 echo "✅ Token is now in:"
-echo "   - Kubernetes secret: $SECRET_NAME"
-echo "   - HelmChartConfig: $HELMCHARTCONFIG_NAME (in cluster only)"
+echo "   - Kubernetes secret: $SECRET_NAME (runner-token key)"
 echo ""
 echo "❌ Token is NOT in:"
 echo "   - Git repository ✅"
-echo "   - Any committed files ✅"
-echo ""
-echo "Fleet will automatically merge the HelmChartConfig with the HelmChart."
-echo "The runner should pick up the new token on the next sync."
+echo "   - HelmChart values ✅"

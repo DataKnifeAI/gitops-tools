@@ -5,11 +5,8 @@ namespace: managed-cicd
 
 resources:
   - gitlab-runner-helmchart.yaml
-  - containerd-harbor-cert-daemonset.yaml
-  # Note: Harbor now uses the default ingress certificate
-  # Run: ./scripts/sync-harbor-ca-cert.sh to extract the certificate from Harbor endpoint
-  # The script creates harbor-ca-cert secret in managed-cicd namespace
-  # The DaemonSet automatically configures containerd on all nodes to trust Harbor certificates
+  # Harbor (harbor.dataknife.net) uses a public TLS chain. Node and job trust rely on
+  # default CA bundles — no privileged DaemonSet or harbor-ca-cert secret in GitOps.
 
 # Cluster-specific overrides for nprd-apps
 # Add any nprd-apps specific configurations here

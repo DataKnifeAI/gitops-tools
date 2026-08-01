@@ -52,20 +52,12 @@ jobs:
         '
   push-to-gitlab:
     name: Push to GitLab
-    runs-on: ubuntu-latest
+    uses: DataKnifeAI/github-workflows/.github/workflows/reusable-gitlab-mirror-push.yml@main
     needs:
     - test-runner
-    if: always() && needs.test-runner.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Push to GitLab
-      env:
-        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-      run: 'git config user.name "GitHub Actions"
-
-        git config user.email "actions@github.com"
-
-        git push https://oauth2:${GITLAB_TOKEN}@gitlab.com/dk-raas/dkai/devops/gitops-tools.git HEAD:main --force || echo "GitLab push failed"'
+    if: >-
+      always() && needs.test-runner.result == 'success' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+    secrets: inherit
+    with:
+      gitlab_mirror_path: dk-raas/dkai/devops/gitops-tools

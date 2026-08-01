@@ -15,55 +15,51 @@ GitLab Runner executes GitLab CI/CD jobs in Kubernetes pods. Each job runs in a 
 ## Prerequisites
 
 1. **GitLab Instance**: Access to a GitLab instance (GitLab.com or self-hosted)
-2. **Runner Registration Token**: Obtain a registration token from your GitLab project, group, or instance
+2. **Runner Authentication Token**: Obtain a `glrt-*` authentication token by creating a runner in GitLab UI
 3. **Kubernetes Cluster**: Access to a Kubernetes cluster with:
    - RBAC enabled
    - Ability to create pods and services
 
 ## Installation
 
-### Step 1: Obtain Runner Registration Token
+### Step 1: Obtain Runner Authentication Token
+
+Registration tokens are deprecated. Create a runner in GitLab UI and copy the `glrt-*` authentication token.
 
 **For Project-level Runner:**
-1. Go to your GitLab project
-2. Navigate to **Settings** → **CI/CD** → **Runners**
-3. Expand **Expand runners settings**
-4. Copy the **Registration token**
+1. Go to your GitLab project → **Settings** → **CI/CD** → **Runners**
+2. Click **New runner** and copy the authentication token
 
 **For Group-level Runner:**
-1. Go to your GitLab group
-2. Navigate to **Settings** → **CI/CD** → **Runners**
-3. Copy the **Registration token**
+1. Go to your GitLab group → **Settings** → **CI/CD** → **Runners**
+2. Click **New runner** and copy the authentication token
 
 **For Instance-level Runner:**
 1. Go to **Admin Area** → **Overview** → **Runners**
-2. Copy the **Registration token**
+2. Click **New runner** and copy the authentication token
 
 ### Step 2: Create Runner Token Secret
 
-Create a Kubernetes secret with the runner token:
-
 ```bash
-# Create secret with runner registration token
+# Create secret with runner authentication token
 kubectl create secret generic gitlab-runner-secret \
-  --from-literal=runner-registration-token='<YOUR_RUNNER_TOKEN>' \
+  --from-literal=runner-registration-token="" \
+  --from-literal=runner-token='glrt-<YOUR_RUNNER_AUTH_TOKEN>' \
   -n managed-cicd
 ```
 
-Alternatively, you can update the HelmChart to use the token directly (not recommended for production).
+Or use the setup script:
+
+```bash
+RUNNER_TOKEN=glrt-xxx ./scripts/runner-setup.sh gitlab
+```
 
 ### Step 3: Update Configuration
 
 Update `gitlab-runner-helmchart.yaml` with:
 - `gitlabUrl`: Your GitLab instance URL (e.g., `https://gitlab.com` or `https://gitlab.example.com`)
-- `runnerRegistrationToken`: Set to your runner token (or use Fleet HelmChartConfig to inject from secret)
 
-To use the secret, you can:
-1. Use Fleet HelmChartConfig to inject the token from the secret
-2. Or manually extract and set the token:
-   ```bash
-   kubectl get secret gitlab-runner-secret -n managed-cicd -o jsonpath='{.data.runner-registration-token}' | base64 -d
-   ```
+The runner token is referenced via `runners.secret: gitlab-runner-secret` (never committed to git).
 
 ### Step 4: Deploy Runner
 
@@ -134,118 +130,16 @@ Cache is configured to use Kubernetes volumes:
 
 ### Harbor Registry Integration
 
-GitLab Runner is configured to work with the Harbor private container registry. This requires certificate configuration in two places:
+Harbor is reachable at `harbor.dataknife.net` with a **public TLS chain** (for example Let’s Encrypt on ingress). Trust is **not** managed by GitOps in this overlay:
 
-1. **Docker-in-Pod Certificate Trust** - For `docker login` and `docker build` commands executed inside job pods
-2. **Kubernetes Image Pull Certificate Trust** - For containerd to pull images from Harbor when creating job pods
+1. **Job pods** (BuildKit, registry login, and so on) use the **image default CA bundle**. We **do not** mount `/etc/docker/certs.d/harbor.dataknife.net` in job pods, so TLS is not tied to a stale custom CA file in the cluster.
+2. **Node image pulls** for the runner manager use the chart default `registry.gitlab.com/gitlab-org/gitlab-runner`. Job images that point at Harbor rely on **RKE2/containerd default trust** for Harbor’s public TLS chain. No `harbor-ca-cert` secret or `containerd-harbor-cert-config` DaemonSet is deployed here.
 
-#### Certificate Configuration Components
-
-**1. Harbor CA Certificate Secret**
-
-Since Harbor uses the default ingress certificate, the Harbor CA certificate is extracted directly from the Harbor registry endpoint and stored in a dedicated secret for GitLab Runner:
-
-```bash
-# Extract Harbor CA certificate and create secret in GitLab Runner namespace
-./scripts/sync-harbor-ca-cert.sh
-```
-
-This script:
-- Extracts the CA certificate from Harbor's registry endpoint (which uses the default ingress certificate)
-- Creates `harbor-ca-cert` secret in `managed-cicd` namespace with only `ca.crt` (no private key)
-- Prevents Docker from expecting client certificates
-- Uses `openssl` to connect to Harbor and extract the certificate chain
-
-**2. Docker Certificate Mount in Job Pods**
-
-The GitLab Runner Helm chart configuration mounts the Harbor CA certificate into job pods at `/etc/docker/certs.d/harbor.dataknife.net/ca.crt`:
-
-```yaml
-[[runners.kubernetes.volumes.secret]]
-  name = "harbor-ca-cert"
-  mount_path = "/etc/docker/certs.d/harbor.dataknife.net"
-  read_only = true
-```
-
-This allows Docker commands inside job pods to trust Harbor's certificate.
-
-**3. RKE2/containerd Registry Configuration (DaemonSet)**
-
-A DaemonSet (`containerd-harbor-cert-config`) runs on each node to configure containerd/RKE2 to trust Harbor certificates for image pulls. It:
-
-- Creates `/etc/rancher/rke2/registries.yaml` with Harbor registry configuration
-- Places the CA certificate at `/etc/rancher/rke2/harbor-ca.crt`
-- Also configures containerd certs.d directory for compatibility
-- Runs as a privileged pod with host network access
-
-**Configuration File Structure:**
-
-The DaemonSet creates `/etc/rancher/rke2/registries.yaml`:
-
-```yaml
-mirrors:
-  "harbor.dataknife.net":
-    endpoint:
-      - "https://harbor.dataknife.net"
-configs:
-  "harbor.dataknife.net":
-    tls:
-      ca_file: "/etc/rancher/rke2/harbor-ca.crt"
-```
-
-**Important Notes:**
-
-- The DaemonSet configuration is cluster-specific and located in the overlay directory: `gitlab-runner/overlays/nprd-apps/containerd-harbor-cert-daemonset.yaml`
-- RKE2 requires a service restart (`rke2-server` on control-plane nodes, `rke2-agent` on worker nodes) to pick up `registries.yaml` changes
-- The DaemonSet maintains the configuration files and will recreate them if deleted
-- For K3s clusters, the paths would be `/etc/rancher/k3s/` instead of `/etc/rancher/rke2/`
-
-#### Updating Harbor Certificate
-
-When the Harbor certificate is updated (or when the default ingress certificate changes):
-
-1. **Re-extract the Harbor CA certificate:**
-   ```bash
-   ./scripts/sync-harbor-ca-cert.sh
-   ```
-   
-   This will automatically extract the current certificate from Harbor's endpoint.
-
-2. **Restart RKE2 services on all nodes** (required for containerd to pick up changes):
-   ```bash
-   # On control-plane nodes
-   sudo systemctl restart rke2-server
-
-   # On worker nodes
-   sudo systemctl restart rke2-agent
-   ```
-
-   The DaemonSet will automatically update the configuration files, but RKE2 needs a restart to reload `registries.yaml`.
-
-3. **Restart GitLab Runner pods** (to pick up new certificate in mounted secret):
-   ```bash
-   kubectl rollout restart deployment gitlab-runner -n managed-cicd
-   ```
+If Harbor ever uses a **private CA** or a hostname that nodes do not trust by default, you would need an explicit trust story (for example install the issuing CA on nodes, or reintroduce a maintained `registries.yaml` / certs.d workflow that matches the live certificate).
 
 #### Verification
 
-**Verify certificate secret exists:**
-```bash
-kubectl get secret harbor-ca-cert -n managed-cicd
-```
-
-**Verify DaemonSet is running:**
-```bash
-kubectl get daemonset containerd-harbor-cert-config -n managed-cicd
-kubectl get pods -n managed-cicd -l app=containerd-harbor-cert-config
-```
-
-**Verify registries.yaml on a node:**
-```bash
-ssh ubuntu@<node-ip> "sudo cat /etc/rancher/rke2/registries.yaml"
-```
-
-**Test Harbor access from a job pod:**
+**Test Harbor TLS from a job pod:**
 ```yaml
 # In .gitlab-ci.yml
 test_harbor:
@@ -310,56 +204,16 @@ kubectl describe pod <job-pod-name> -n managed-cicd
 
 **Error: `tls: failed to verify certificate: x509: certificate signed by unknown authority`**
 
-This error can occur in two scenarios:
+1. **Inside job pods** (push or pull to `harbor.dataknife.net`): Confirm Harbor presents a full chain trusted by public CAs, for example:
+   ```bash
+   openssl s_client -connect harbor.dataknife.net:443 -servername harbor.dataknife.net </dev/null
+   ```
 
-1. **Docker commands in job pods** (e.g., `docker login`, `docker build`):
-   - Verify the `harbor-ca-cert` secret exists: `kubectl get secret harbor-ca-cert -n managed-cicd`
-   - Verify the secret is mounted in the GitLab Runner Helm chart configuration
-   - Check job pod logs to confirm certificate is mounted: `kubectl logs <job-pod-name> -n managed-cicd`
-   - Run `./scripts/sync-harbor-ca-cert.sh` to recreate the secret
-
-2. **Kubernetes image pulls** (e.g., `Error: ErrImagePull` during pod creation):
-   - Verify the DaemonSet is running: `kubectl get daemonset containerd-harbor-cert-config -n managed-cicd`
-   - Check DaemonSet pod logs: `kubectl logs -n managed-cicd -l app=containerd-harbor-cert-config --tail=50`
-   - Verify `registries.yaml` exists on nodes: `ssh ubuntu@<node-ip> "sudo cat /etc/rancher/rke2/registries.yaml"`
-   - Restart RKE2 services on all nodes (required after DaemonSet creates/updates files):
-     ```bash
-     # On control-plane nodes
-     sudo systemctl restart rke2-server
-     # On worker nodes
-     sudo systemctl restart rke2-agent
-     ```
+2. **Kubernetes image pulls** (`ErrImagePull` when starting the runner or a job pod): Confirm the same from a node, and that the node OS/RKE2 trust store is current. If nodes previously had a **custom** `registries.yaml` or `certs.d` entry for Harbor (for example from an old DaemonSet), remove or update those files so they do not pin a **wrong** `ca_file` that no longer matches the ingress certificate.
 
 **Error: `missing client certificate tls.cert for key tls.key`**
 
-This occurs when the secret contains both `tls.crt` and `tls.key`. Docker interprets this as a client certificate requirement.
-
-- Solution: Use `harbor-ca-cert` secret with only `ca.crt` (no private key)
-- Run `./scripts/sync-harbor-ca-cert.sh` to create the correct secret format
-
-**Certificate not mounted in job pods:**
-```bash
-# Verify secret exists
-kubectl get secret harbor-ca-cert -n managed-cicd
-
-# Check GitLab Runner Helm chart values for volume mount configuration
-kubectl get helmchart gitlab-runner -n managed-cicd -o yaml | grep -A 10 harbor-ca-cert
-
-# Restart GitLab Runner pods to pick up secret changes
-kubectl rollout restart deployment gitlab-runner -n managed-cicd
-```
-
-**DaemonSet not running on nodes:**
-```bash
-# Check DaemonSet status
-kubectl get daemonset containerd-harbor-cert-config -n managed-cicd
-
-# Check DaemonSet pod logs
-kubectl logs -n managed-cicd -l app=containerd-harbor-cert-config
-
-# Verify DaemonSet configuration file exists in overlay
-ls -la gitlab-runner/overlays/nprd-apps/containerd-harbor-cert-daemonset.yaml
-```
+This occurs when a volume under `/etc/docker/certs.d/` (or similar) exposes both `tls.crt` and `tls.key`. The client then expects a client certificate. For Harbor trust, use **only** a CA PEM (or rely on system trust and avoid custom cert mounts).
 
 ## References
 

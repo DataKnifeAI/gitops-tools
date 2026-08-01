@@ -16,7 +16,7 @@ This guide walks you through deploying Harbor, GitHub, and GitLab runners to you
 
 3. **GitLab Access** (for GitLab Runner):
    - GitLab instance URL
-   - Runner registration token
+   - Runner authentication token (`glrt-*`, created via GitLab UI)
 
 ## Quick Start
 
@@ -29,8 +29,8 @@ This guide walks you through deploying Harbor, GitHub, and GitLab runners to you
 
 **GitLab Token:**
 1. Go to your GitLab RaaS group
-2. Settings → CI/CD → Runners
-3. Copy the group runner registration token
+2. Settings → CI/CD → Runners → New runner
+3. Copy the runner authentication token (starts with `glrt-`)
 
 ### Step 2: Create Secrets
 
@@ -106,7 +106,8 @@ kubectl create secret generic actions-runner-controller \
 
 ```bash
 kubectl create secret generic gitlab-runner-secret \
-  --from-literal=runner-registration-token='<YOUR_GITLAB_RUNNER_TOKEN>' \
+  --from-literal=runner-registration-token="" \
+  --from-literal=runner-token='glrt-<YOUR_RUNNER_AUTH_TOKEN>' \
   -n managed-cicd
 ```
 
@@ -129,8 +130,10 @@ kubectl create secret generic gitlab-runner-secret \
 1. Edit `gitlab-runner/base/gitlab-runner-helmchart.yaml`:
    - Update `gitlabUrl: https://gitlab.com` (or your GitLab instance URL)
 
-2. Update token via HelmChartConfig (recommended - token never goes to git):
+2. Update token in Kubernetes secret (recommended - token never goes to git):
    ```bash
+   RUNNER_TOKEN=glrt-xxx ./scripts/runner-setup.sh gitlab
+   # or update existing secret:
    ./scripts/runner-config.sh
    ```
 
@@ -281,14 +284,13 @@ For organization-level runners, you need a GitHub Personal Access Token (PAT) or
 
 1. Go to your GitLab instance
 2. Navigate to the **RaaS** group
-3. Go to **Settings** → **CI/CD**
-4. Expand **Runners** section
-5. Under **Group runners**, find the registration token
-6. Copy the token
+3. Go to **Settings** → **CI/CD** → **Runners**
+4. Click **New runner** and configure runner settings
+5. Copy the runner authentication token (starts with `glrt-`)
 
 **Note:** If you don't see group runners, you may need to:
 - Ensure you have Maintainer/Owner permissions on the group
-- Or use an instance-level runner token from Admin Area
+- Or create an instance-level runner from Admin Area → Runners
 
 ## GitHub Organization Setup
 

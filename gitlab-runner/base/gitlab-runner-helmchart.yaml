@@ -5,9 +5,9 @@ metadata:
   namespace: managed-cicd
 spec:
   chart: gitlab-runner
-  repo: https://charts.gitlab.io
   # Align with GitLab.com SaaS (~19.3): chart 0.91.0 ships Runner 19.2.0
   version: "0.91.0"
+  repo: https://charts.gitlab.io
   targetNamespace: managed-cicd
   valuesContent: |-
     # GitLab Runner configuration
@@ -17,13 +17,10 @@ spec:
     gitlabUrl: https://gitlab.com
     # Or for self-hosted: https://gitlab.example.com
     
-    # Runner registration token
-    # Token extracted from secret: gitlab-runner-secret
-          # runnerRegistrationToken: "" # Set via Fleet HelmChartConfig or extract from secret
-          # To extract from secret:
-          # kubectl get secret gitlab-runner-secret -n managed-cicd -o jsonpath='{.data.runner-registration-token}' | base64 -d
-    # To use a secret, you can also set it via Fleet HelmChartConfig or
-    # update this value directly with the token from the secret
+    # Runner authentication token (glrt-*) is stored in gitlab-runner-secret.
+    # Create the runner in GitLab UI, then:
+    #   ./scripts/runner-setup.sh gitlab
+    #   ./scripts/runner-config.sh
     
     # RBAC configuration
     rbac:
@@ -35,6 +32,9 @@ spec:
     
     # Runner configuration
     runners:
+      # Reference pre-created secret with runner-token (glrt-* authentication token)
+      secret: gitlab-runner-secret
+
       # Kubernetes executor configuration
       config: |
         [[runners]]
@@ -88,8 +88,8 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration (chart >=0.89 uses registry/image/tag)
-    # Matches current nprd-apps pulls from registry.gitlab.com; pin 19.2.1 patch
+    # Image configuration — registry.gitlab.com/gitlab-org/gitlab-runner
+    # Pin 19.2.1 patch (chart appVersion defaults to alpine-v19.2.0)
     image:
       registry: registry.gitlab.com
       image: gitlab-org/gitlab-runner

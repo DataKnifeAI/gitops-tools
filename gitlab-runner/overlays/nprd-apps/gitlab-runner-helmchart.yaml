@@ -5,9 +5,9 @@ metadata:
   namespace: managed-cicd
 spec:
   chart: gitlab-runner
-  repo: https://charts.gitlab.io
   # Align with GitLab.com SaaS (~19.3): chart 0.91.0 ships Runner 19.2.0
   version: "0.91.0"
+  repo: https://charts.gitlab.io
   targetNamespace: managed-cicd
   valuesContent: |-
     # GitLab Runner configuration
@@ -17,26 +17,12 @@ spec:
     gitlabUrl: https://gitlab.com
     # Or for self-hosted: https://gitlab.example.com
     
-    # Runner registration token
+    # Runner authentication token (glrt-*) is stored in gitlab-runner-secret.
     # ⚠️  DO NOT PUT THE TOKEN HERE - it will be committed to git!
     #
-    # The token is managed via HelmChartConfig in the cluster (not in git).
     # To set/update the token:
-    #
-    #   1. Create/update the Kubernetes secret:
-    #      kubectl create secret generic gitlab-runner-secret \
-    #        --from-literal=runner-registration-token='<YOUR_TOKEN>' \
-    #        -n managed-cicd \
-    #        --dry-run=client -o yaml | kubectl apply -f -
-    #
-    #   2. Update HelmChartConfig in cluster (token never goes to git):
-    #      ./scripts/update-gitlab-runner-helmchartconfig.sh
-    #
-    # The HelmChartConfig will be merged with this HelmChart by Fleet.
-    # The token is stored ONLY in:
-    #   - Kubernetes secret (gitlab-runner-secret)
-    #   - HelmChartConfig in cluster (not in git)
-    runnerRegistrationToken: "" # Leave empty - set via HelmChartConfig
+    #   ./scripts/runner-setup.sh gitlab
+    #   ./scripts/runner-config.sh
     
     # RBAC configuration
     rbac:
@@ -52,6 +38,9 @@ spec:
     
     # Runner configuration
     runners:
+      # Reference pre-created secret with runner-token (glrt-* authentication token)
+      secret: gitlab-runner-secret
+
       # Kubernetes executor configuration
       config: |
         [[runners]]
@@ -69,14 +58,9 @@ spec:
             [runners.kubernetes.pod_annotations]
               "container.apparmor.security.beta.kubernetes.io/build" = "unconfined"
             
-            # Mount Harbor CA certificate for Docker registry access
-            # Uses harbor-ca-cert secret with only the CA certificate (no private key)
-            # This allows job pods to pull/push images from Harbor registry
-            # Docker expects the certificate at: /etc/docker/certs.d/<registry-hostname>/ca.crt
-            [[runners.kubernetes.volumes.secret]]
-              name = "harbor-ca-cert"
-              mount_path = "/etc/docker/certs.d/harbor.dataknife.net"
-              read_only = true
+            # Harbor (harbor.dataknife.net) uses the public Let's Encrypt chain on ingress.
+            # Job pods verify registry TLS with the image default CA bundle — do not mount
+            # /etc/docker/certs.d/harbor.dataknife.net (avoids stale or mismatched custom CA).
       
       # Runner tags (for group-level runner)
       tags: "kubernetes,managed-cicd,docker"
@@ -119,8 +103,8 @@ spec:
     metrics:
       enabled: false
     
-    # Image configuration (chart >=0.89 uses registry/image/tag)
-    # Matches current nprd-apps pulls from registry.gitlab.com; pin 19.2.1 patch
+    # Image configuration — registry.gitlab.com/gitlab-org/gitlab-runner
+    # Pin 19.2.1 patch (chart appVersion defaults to alpine-v19.2.0)
     image:
       registry: registry.gitlab.com
       image: gitlab-org/gitlab-runner
