@@ -1,5 +1,8 @@
 # GitOps Tools
 
+![GitOps tools for nprd-apps](docs/assets/gitops-tools-hero.jpg)
+
+
 GitOps repository for deploying managed Kubernetes tools to the `nprd-apps` cluster using Rancher Fleet.
 
 ## Quick Start
