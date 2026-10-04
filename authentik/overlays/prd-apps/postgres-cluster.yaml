@@ -1,0 +1,35 @@
+# CloudNativePG Cluster for Authentik - 3 instances for HA
+# Requires: authentik-postgres-credentials secret (username, password) in same namespace
+# The same password must be AUTHENTIK_POSTGRESQL__PASSWORD in the authentik-env secret.
+#
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authentik-postgres
+  namespace: authentik
+  labels:
+    component: database
+spec:
+  instances: 3
+  # Omit fsGroup for NFS — kubelet applyFSGroup fails when initdb creates pgdata with 700.
+  # With dataset 0777, postgres (UID 26) can access the volume directly.
+  podSecurityContext:
+    runAsUser: 26
+    runAsGroup: 26
+    runAsNonRoot: true
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+      secret:
+        name: authentik-postgres-credentials
+  storage:
+    size: 5Gi
+    storageClass: truenas-csi-nfs
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

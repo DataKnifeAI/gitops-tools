@@ -20,11 +20,13 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 - **GitHub Runner**: GitHub Actions self-hosted runners
 - **GitLab Runner**: GitLab CI/CD runners
 - **Loki Stack**: Log aggregation and visualization (Loki + Promtail + Grafana)
+- **Authentik**: SSO identity provider at `https://auth.dataknife.net` (prd-apps) — create secrets first, see [secrets/authentik/README.md](secrets/authentik/README.md)
 
 ## Structure
 
 ```
 .
+├── authentik/       # Authentik SSO identity provider (prd-apps)
 ├── harbor/          # Harbor registry deployment
 ├── github-runner/   # GitHub Actions runners
 ├── gitlab-runner/   # GitLab CI/CD runners

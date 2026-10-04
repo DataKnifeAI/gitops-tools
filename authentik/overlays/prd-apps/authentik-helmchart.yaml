@@ -1,0 +1,57 @@
+# Authentik Helm Chart - prd-apps overlay
+# Docs: https://docs.goauthentik.io/install-config/install/kubernetes
+#
+# Secrets (authentik-env) are created out of band — see secrets/authentik/README.md.
+# TLS comes from the ingress-nginx default certificate (*.dataknife.net).
+#
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  chart: authentik
+  repo: https://charts.goauthentik.io
+  targetNamespace: authentik
+  version: "2026.8.3"
+  valuesContent: |-
+    authentik:
+      existingSecret:
+        secretName: authentik-env
+    global:
+      env:
+        - name: AUTHENTIK_POSTGRESQL__HOST
+          value: authentik-postgres-rw
+        - name: AUTHENTIK_POSTGRESQL__NAME
+          value: authentik
+        - name: AUTHENTIK_POSTGRESQL__USER
+          value: authentik
+        - name: AUTHENTIK_ERROR_REPORTING__ENABLED
+          value: "false"
+    server:
+      replicas: 2
+      pdb:
+        enabled: true
+        minAvailable: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - auth.dataknife.net
+        tls:
+          - hosts:
+              - auth.dataknife.net
+    worker:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
