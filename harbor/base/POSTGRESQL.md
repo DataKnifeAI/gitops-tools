@@ -126,7 +126,7 @@ The config is in `overlays/nprd-apps/objectstore.yaml` (ObjectStore + ScheduledB
 `plugins` section of `overlays/nprd-apps/postgresql-cluster.yaml`.
 
 - **Where**: `s3://rke2-backups/cnpg/nprd-apps/harbor-postgresql/` on rustfs
-  (`https://rustfs.dataknife.net:30293`), gzip, 14 day retention.
+  (`https://rustfs.dataknife.net:30292`), gzip, 14 day retention.
 - **Credentials**: `cnpg-backup-rustfs` secret in `harbor` (keys `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY`),
   created by hand, not in git.
 - **WAL cap**: `max_slot_wal_keep_size: 4GB`, so a broken replica's slot cannot fill the 20Gi volume.

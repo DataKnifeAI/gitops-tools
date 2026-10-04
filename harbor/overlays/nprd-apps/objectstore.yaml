@@ -10,7 +10,7 @@ spec:
   retentionPolicy: "14d"
   configuration:
     destinationPath: s3://rke2-backups/cnpg/nprd-apps
-    endpointURL: https://rustfs.dataknife.net:30293
+    endpointURL: https://rustfs.dataknife.net:30292
     s3Credentials:
       accessKeyId:
         name: cnpg-backup-rustfs
