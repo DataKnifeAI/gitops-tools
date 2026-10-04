@@ -1,0 +1,48 @@
+# Barman Cloud plugin object store for harbor-postgresql (plugin installed by gitops-core cnpg-barman-cloud)
+# Backups land in s3://rke2-backups/cnpg/nprd-apps/harbor-postgresql/
+# Requires: cnpg-backup-rustfs secret (ACCESS_KEY_ID, ACCESS_SECRET_KEY) in this namespace
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: harbor-postgresql-rustfs
+  namespace: harbor
+spec:
+  retentionPolicy: "14d"
+  configuration:
+    destinationPath: s3://rke2-backups/cnpg/nprd-apps
+    endpointURL: https://rustfs.dataknife.net:30293
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-rustfs
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-rustfs
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+      jobs: 2
+  instanceSidecarConfiguration:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 1Gi
+---
+# Daily base backup, 10:30 UTC (03:30 PDT). Staggered with other CNPG clusters.
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: harbor-postgresql-daily
+  namespace: harbor
+spec:
+  schedule: "0 30 10 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: harbor-postgresql
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
