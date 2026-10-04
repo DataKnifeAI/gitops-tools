@@ -26,10 +26,12 @@ spec:
   storage:
     size: 5Gi
     storageClass: truenas-csi-nfs
+  # 500m CPU limit throttled the primary in every period during Authentik startup,
+  # timing out the server liveness probes.
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 500m
+      cpu: 250m
       memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 1Gi
