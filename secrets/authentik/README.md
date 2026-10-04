@@ -48,6 +48,37 @@ kubectl --context prd-apps -n authentik get secret authentik-env \
   -o jsonpath='{.data.AUTHENTIK_BOOTSTRAP_PASSWORD}' | base64 -d; echo
 ```
 
+## 3. cnpg-backup-rustfs (database backups)
+
+S3 credentials for the Barman Cloud plugin, which backs up `authentik-postgres` to rustfs. Keys:
+`ACCESS_KEY_ID` and `ACCESS_SECRET_KEY`. The same secret exists in every namespace that holds a
+CNPG cluster.
+
+```bash
+kubectl --context prd-apps -n authentik create secret generic cnpg-backup-rustfs \
+  --from-literal=ACCESS_KEY_ID="$S3_ACCESS_KEY" --from-literal=ACCESS_SECRET_KEY="$S3_SECRET_KEY"
+```
+
+## Database backups and restore
+
+`authentik-postgres` archives WAL continuously and takes a daily base backup (10:00 UTC) to
+`s3://rke2-backups/cnpg/prd-apps/authentik-postgres/` on rustfs (`https://rustfs.dataknife.net:30292`),
+gzip, 14 day retention. Config: `authentik/overlays/prd-apps/objectstore.yaml` and the `plugins`
+section of `postgres-cluster.yaml`. `max_slot_wal_keep_size: 1GB` keeps a broken replica's slot from
+filling the 5Gi volume.
+
+```bash
+kubectl cnpg status authentik-postgres -n authentik
+kubectl -n authentik get backups.postgresql.cnpg.io
+kubectl cnpg backup authentik-postgres -n authentik --method=plugin --plugin-name=barman-cloud.cloudnative-pg.io
+```
+
+Restore: create a new Cluster with `bootstrap.recovery.source` set to an `externalClusters` entry
+that uses plugin `barman-cloud.cloudnative-pg.io` with `barmanObjectName: authentik-postgres-rustfs`
+and `serverName: authentik-postgres`. Then point the HelmChart's database host at the new `-rw`
+service. A full example is in the gitops-core `cnpg-barman-cloud` README. The database password must
+still match `AUTHENTIK_POSTGRESQL__PASSWORD`, because recovery restores the original roles.
+
 ## Lockout recovery
 
 If `akadmin` is locked out, create a one-time recovery link from inside a server pod:
