@@ -62,7 +62,7 @@ kubectl --context prd-apps -n authentik create secret generic cnpg-backup-rustfs
 ## Database backups and restore
 
 `authentik-postgres` archives WAL continuously and takes a daily base backup (10:00 UTC) to
-`s3://rke2-backups/cnpg/prd-apps/authentik-postgres/` on rustfs (`https://rustfs.dataknife.net:30293`),
+`s3://rke2-backups/cnpg/prd-apps/authentik-postgres/` on rustfs (`https://rustfs.dataknife.net:30292`),
 gzip, 14 day retention. Config: `authentik/overlays/prd-apps/objectstore.yaml` and the `plugins`
 section of `postgres-cluster.yaml`. `max_slot_wal_keep_size: 1GB` keeps a broken replica's slot from
 filling the 5Gi volume.
