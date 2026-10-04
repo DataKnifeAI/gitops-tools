@@ -28,6 +28,9 @@ spec:
           value: authentik
         - name: AUTHENTIK_ERROR_REPORTING__ENABLED
           value: "false"
+    # Database is the CloudNativePG cluster in postgres-cluster.yaml.
+    postgresql:
+      enabled: false
     server:
       replicas: 2
       pdb:
