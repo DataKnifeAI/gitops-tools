@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: authentik
+
+resources:
+  - namespace.yaml
+  - postgres-cluster.yaml
+  - authentik-helmchart.yaml
+
+commonLabels:
+  app: authentik
+  managed-by: gitops
+  cluster: prd-apps

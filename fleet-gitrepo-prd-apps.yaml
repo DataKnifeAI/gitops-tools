@@ -1,6 +1,7 @@
 # Fleet GitRepo for prd-apps cluster
-# Deploys monitoring (Promtail + Prometheus) to prd-apps
+# Deploys monitoring (Promtail + Prometheus) and Authentik (SSO) to prd-apps
 # Promtail pushes to remote Loki at https://loki.dataknife.net
+# Authentik needs its secrets first — see secrets/authentik/README.md
 #
 # Apply from rancher-manager context:
 #   kubectl --context rancher-manager apply -f fleet-gitrepo-prd-apps.yaml
@@ -19,6 +20,7 @@ spec:
   branch: main
   paths:
     - monitoring/overlays/prd-apps
+    - authentik/overlays/prd-apps
   targets:
     - clusterSelector:
         matchLabels:

@@ -1,0 +1,14 @@
+# Fleet configuration for prd-apps cluster
+# Deploys Authentik (SSO identity provider) with a CloudNativePG database
+#
+defaultNamespace: authentik
+
+# The authentik namespace is created by hand first to hold secrets; let Fleet adopt it.
+helm:
+  takeOwnership: true
+
+targetCustomizations:
+  - name: prd-apps
+    clusterSelector:
+      matchLabels:
+        management.cattle.io/cluster-display-name: prd-apps
