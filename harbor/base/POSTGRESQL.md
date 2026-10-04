@@ -119,12 +119,33 @@ The cluster is configured with:
 
 ## Backup and Recovery
 
-CloudNativePG supports:
-- Volume snapshots (if storage class supports it)
-- WAL archiving
-- Point-in-time recovery (PITR)
+On nprd-apps, `harbor-postgresql` archives WAL continuously and takes a daily base backup
+(10:30 UTC) through the Barman Cloud plugin, installed by
+[gitops-core `cnpg-barman-cloud`](https://github.com/DataKnifeAI/gitops-core/tree/main/cnpg-barman-cloud).
+The config is in `overlays/nprd-apps/objectstore.yaml` (ObjectStore + ScheduledBackup) and in the
+`plugins` section of `overlays/nprd-apps/postgresql-cluster.yaml`.
 
-Configure backups by adding a `Backup` or `ScheduledBackup` resource. See [CloudNativePG Backup documentation](https://cloudnative-pg.io/docs/1.28/backup/) for details.
+- **Where**: `s3://rke2-backups/cnpg/nprd-apps/harbor-postgresql/` on rustfs
+  (`https://rustfs.dataknife.net:30292`), gzip, 14 day retention.
+- **Credentials**: `cnpg-backup-rustfs` secret in `harbor` (keys `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY`),
+  created by hand, not in git.
+- **WAL cap**: `max_slot_wal_keep_size: 4GB`, so a broken replica's slot cannot fill the 20Gi volume.
+
+Check:
+
+```bash
+kubectl cnpg status harbor-postgresql -n harbor
+kubectl -n harbor get backups.postgresql.cnpg.io
+kubectl -n harbor get clusters.postgresql.cnpg.io harbor-postgresql \
+  -o jsonpath='{.status.conditions[?(@.type=="ContinuousArchiving")].status}'
+kubectl cnpg backup harbor-postgresql -n harbor --method=plugin --plugin-name=barman-cloud.cloudnative-pg.io  # on demand
+```
+
+Restore (PITR possible): create a new Cluster with `bootstrap.recovery.source` set to an
+`externalClusters` entry that uses plugin `barman-cloud.cloudnative-pg.io` with
+`barmanObjectName: harbor-postgresql-rustfs` and `serverName: harbor-postgresql`. Then point Harbor at
+the new `-rw` service. A full example is in the gitops-core `cnpg-barman-cloud` README. Images live
+in Harbor's registry storage, not in this database; see `scripts/README-harbor-backup.md`.
 
 ## Troubleshooting
 

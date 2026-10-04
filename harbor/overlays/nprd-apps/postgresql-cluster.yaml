@@ -45,6 +45,15 @@ spec:
       work_mem: "4MB"
       min_wal_size: "1GB"
       max_wal_size: "4GB"
+      # Cap WAL kept for lagging/broken replicas so a dead slot cannot fill the 20Gi volume.
+      max_slot_wal_keep_size: "4GB"
+
+  # WAL archiving + base backups to rustfs (ObjectStore in objectstore.yaml)
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: harbor-postgresql-rustfs
   
   # Storage configuration
   storage:

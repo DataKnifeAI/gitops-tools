@@ -8,6 +8,7 @@ resources:
   - harbor-helmchart.yaml
   - postgresql-cluster.yaml
   - postgresql-database.yaml
+  - objectstore.yaml
 
 commonLabels:
   app: harbor
