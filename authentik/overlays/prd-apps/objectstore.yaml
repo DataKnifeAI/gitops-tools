@@ -1,0 +1,48 @@
+# Barman Cloud plugin object store for authentik-postgres (plugin installed by gitops-core cnpg-barman-cloud)
+# Backups land in s3://rke2-backups/cnpg/prd-apps/authentik-postgres/
+# Requires: cnpg-backup-rustfs secret (ACCESS_KEY_ID, ACCESS_SECRET_KEY) in this namespace
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: authentik-postgres-rustfs
+  namespace: authentik
+spec:
+  retentionPolicy: "14d"
+  configuration:
+    destinationPath: s3://rke2-backups/cnpg/prd-apps
+    endpointURL: https://rustfs.dataknife.net:30293
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-backup-rustfs
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-backup-rustfs
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+      jobs: 2
+  instanceSidecarConfiguration:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 1Gi
+---
+# Daily base backup, 10:00 UTC (03:00 PDT). Staggered with other CNPG clusters.
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: authentik-postgres-daily
+  namespace: authentik
+spec:
+  schedule: "0 0 10 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: authentik-postgres
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

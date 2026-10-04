@@ -6,6 +6,7 @@ namespace: authentik
 resources:
   - namespace.yaml
   - postgres-cluster.yaml
+  - objectstore.yaml
   - authentik-helmchart.yaml
 
 commonLabels:
