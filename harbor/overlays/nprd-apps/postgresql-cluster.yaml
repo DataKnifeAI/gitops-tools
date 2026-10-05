@@ -55,6 +55,10 @@ spec:
       parameters:
         barmanObjectName: harbor-postgresql-rustfs
   
+  # Roll the primary last by switching over to an already-updated replica
+  # (seconds of downtime) instead of restarting it in place.
+  primaryUpdateStrategy: unsupervised
+  primaryUpdateMethod: switchover
   # Storage configuration
   storage:
     size: 20Gi
