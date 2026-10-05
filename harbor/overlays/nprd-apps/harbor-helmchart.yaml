@@ -5,6 +5,7 @@ metadata:
   namespace: harbor
 spec:
   chart: harbor
+  version: "1.19.1"
   repo: https://helm.goharbor.io
   targetNamespace: harbor
   valuesContent: |-
