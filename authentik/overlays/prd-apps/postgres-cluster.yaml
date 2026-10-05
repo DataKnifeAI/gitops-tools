@@ -36,6 +36,10 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: authentik-postgres-rustfs
+  # Roll the primary last by switching over to an already-updated replica
+  # (seconds of downtime) instead of restarting it in place.
+  primaryUpdateStrategy: unsupervised
+  primaryUpdateMethod: switchover
   # 500m CPU limit throttled the primary in every period during Authentik startup,
   # timing out the server liveness probes.
   resources:
