@@ -12,6 +12,7 @@ metadata:
   namespace: grafana
 spec:
   chart: grafana
+  version: "10.5.15"
   repo: https://grafana.github.io/helm-charts
   targetNamespace: grafana
   valuesContent: |-
