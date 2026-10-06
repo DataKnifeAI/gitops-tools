@@ -64,18 +64,6 @@ Each overlay directory contains **all necessary files** (copied from base):
 
 ```
 .
-├── github-runner/
-│   ├── base/                    # Base configuration (reference only)
-│   │   ├── kustomization.yaml
-│   │   ├── github-runner-controller-helmchart.yaml
-│   │   └── runnerdeployment.yaml
-│   └── overlays/
-│       └── nprd-apps/           # Cluster-specific overlay (deployed)
-│           ├── fleet.yaml       # Cluster targeting
-│           ├── kustomization.yaml
-│           ├── github-runner-controller-helmchart.yaml  # Copied from base
-│           └── runnerdeployment.yaml                    # Copied from base
-│
 ├── gitlab-runner/
 │   ├── base/                    # Base configuration (reference only)
 │   └── overlays/
@@ -172,7 +160,6 @@ Base directories serve as:
 
 Fleet creates bundles with names based on the monitored path:
 
-- `github-runner/overlays/nprd-apps` → `gitops-tools-nprd-apps-github-runner-overlays-n-<hash>`
 - `harbor/overlays/nprd-apps` → `gitops-tools-nprd-apps-harbor-overlays-nprd-apps`
 - `grafana/overlays/nprd-apps` → `gitops-tools-nprd-apps-grafana-overlays-nprd-apps`
 

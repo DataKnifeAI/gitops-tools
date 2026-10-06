@@ -28,7 +28,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 .
 ├── authentik/       # Authentik SSO identity provider (prd-apps)
 ├── harbor/          # Harbor registry deployment
-├── github-runner/   # GitHub Actions runners
 ├── gitlab-runner/   # GitLab CI/CD runners
 ├── grafana/         # Grafana Stack (Loki + Promtail + Grafana)
 ├── scripts/         # Setup and utility scripts
