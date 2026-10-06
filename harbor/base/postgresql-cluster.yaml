@@ -15,8 +15,9 @@ spec:
     runAsUser: 26
     runAsGroup: 26
     runAsNonRoot: true
-  # PostgreSQL version - using 16.2 (latest stable)
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.2
+  # Minor upgrades within 16 are in-place (rolling, primary last by switchover).
+  # standard flavor: backups use the Barman Cloud plugin, so the image needs no barman-cloud tools.
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.15-standard-trixie
   
   # Bootstrap configuration
   bootstrap:
