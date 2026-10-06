@@ -16,11 +16,12 @@ data:
   vector.yaml: |
     # Vector Configuration for UniFi CEF Syslog Ingestion
     
-    # Enable API for health checks (on port 8686 to avoid conflict with prometheus_exporter)
+    # Enable API for health checks (on port 8686 to avoid conflict with prometheus_exporter).
+    # Since 0.55 the API is gRPC; HTTP GET /health still serves the probes. api.playground and
+    # api.graphql are rejected, so don't add them back.
     api:
       enabled: true
       address: "0.0.0.0:8686"
-      playground: false
     
     sources:
       syslog_udp:
