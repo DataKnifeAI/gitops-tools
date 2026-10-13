@@ -48,10 +48,17 @@ spec:
             namespace = "{{.Release.Namespace}}"
             image = "alpine:latest"
             privileged = false
+            # Default for every job. A job may raise itself up to the
+            # overwrite caps. pulseblade's publish job uses 2 CPU and 4Gi.
+            # nprd nodes are 4 CPU / 8Gi, so the cap stays at half a node.
             cpu_limit = "1"
             memory_limit = "2Gi"
             cpu_request = "100m"
             memory_request = "128Mi"
+            cpu_limit_overwrite_max_allowed = "2"
+            cpu_request_overwrite_max_allowed = "2"
+            memory_limit_overwrite_max_allowed = "4Gi"
+            memory_request_overwrite_max_allowed = "4Gi"
             
             # BuildKit rootless support - disable AppArmor for build containers
             # This allows BuildKit rootless to perform required mount operations
