@@ -4,20 +4,18 @@ This document explains the Fleet GitOps structure and how deployments are organi
 
 ## Current Fleet Configuration
 
-Fleet uses **separate GitRepos per cluster** because GitRepo targets apply to all bundles. Broadening targets would deploy grafana/harbor/gitlab-runner (nprd-apps only) to other clusters, causing conflicts.
+Fleet uses **separate GitRepos per cluster** because GitRepo targets apply to all bundles. Broadening targets would deploy Harbor and the GitLab runner (nprd-apps only) onto other clusters.
 
 ### GitRepos
 
 | GitRepo | Targets | Paths |
 |---------|---------|-------|
-| `gitops-tools-nprd-apps` | nprd-apps | gitlab-runner, harbor, grafana, monitoring/nprd-apps |
-| `gitops-tools-poc-apps` | poc-apps | monitoring/overlays/poc-apps |
-| `gitops-tools-prd-apps` | prd-apps | monitoring/overlays/prd-apps |
+| `gitops-tools-nprd-apps` | nprd-apps | gitlab-runner, harbor |
+| `gitops-tools-prd-apps` | prd-apps | authentik |
 
-**Apply poc-apps and prd-apps GitRepos** (from rancher-manager context):
+**Apply the prd-apps GitRepo** (from rancher-manager context):
 
 ```bash
-kubectl --context rancher-manager apply -f fleet-gitrepo-poc-apps.yaml
 kubectl --context rancher-manager apply -f fleet-gitrepo-prd-apps.yaml
 ```
 
@@ -30,16 +28,10 @@ Overlay directories only to prevent bundle conflicts:
 paths:
   - gitlab-runner/overlays/nprd-apps
   - harbor/overlays/nprd-apps
-  - grafana/overlays/nprd-apps
-  - monitoring/overlays/nprd-apps
 
-# gitops-tools-poc-apps (uses monitoring namespace to avoid grafana conflicts)
+# gitops-tools-prd-apps
 paths:
-  - monitoring/overlays/poc-apps
-
-# gitops-tools-prd-apps (uses monitoring namespace)
-paths:
-  - monitoring/overlays/prd-apps
+  - authentik/overlays/prd-apps
 ```
 
 ## Why Overlay-Only Monitoring?
@@ -50,7 +42,7 @@ If Fleet monitors the root directory (`.`) or base directories:
 - Fleet creates **separate bundles** for each directory
 - Base and overlay bundles both try to deploy the same resources
 - Results in ownership conflicts and `ErrApplied` errors
-- Example: `gitops-tools-nprd-apps-grafana-base` and `gitops-tools-nprd-apps-grafana-overlays-nprd-apps` both deploying config
+- Example: a base bundle and an overlay bundle both deploying Harbor
 
 ### Solution: Overlay-Only Pattern
 
@@ -82,33 +74,9 @@ Each overlay directory contains **all necessary files** (copied from base):
 │           ├── postgresql-cluster.yaml       # Copied from base
 │           └── postgresql-database.yaml      # Copied from base
 │
-├── grafana/
-│   ├── base/                    # Base configuration (reference only)
-│   │   ├── fleet.yaml
-│   │   ├── kustomization.yaml
-│   │   ├── namespace.yaml
-│   │   ├── loki-helmchart.yaml
-│   │   ├── grafana-helmchart.yaml
-│   │   └── README.md
-│   └── overlays/
-│       └── nprd-apps/           # Cluster-specific overlay (deployed)
-│           ├── fleet.yaml
-│           ├── kustomization.yaml
-│           ├── loki-helmchart.yaml
-│           ├── grafana-helmchart.yaml
-│           ├── loki-ingress.yaml
-│           └── vector-*.yaml    # Syslog for UniFi CEF
-│
-└── monitoring/                  # Promtail + Prometheus (per-cluster)
-    ├── base/
-    │   ├── promtail-helmchart.yaml
-    │   ├── prometheus-helmchart.yaml
-    │   └── namespace.yaml
+└── authentik/
     └── overlays/
-        ├── nprd-apps/           # Loki in-cluster
-        ├── poc-apps/            # Loki remote
-        ├── prd-apps/            # Loki remote
-        └── rancher-manager/     # Loki remote
+        └── prd-apps/            # Cluster-specific overlay (deployed)
 ```
 
 ## Key Patterns
@@ -118,17 +86,10 @@ Each overlay directory contains **all necessary files** (copied from base):
 Each overlay's `kustomization.yaml` references **local files** (not `../base/`):
 
 ```yaml
-# ✅ CORRECT (grafana overlay - Loki, Grafana, Vector)
+# ✅ CORRECT (harbor overlay)
 resources:
-  - loki-helmchart.yaml
-  - grafana-helmchart.yaml
-  - loki-ingress.yaml
-  - vector-*.yaml
-
-# ✅ CORRECT (monitoring overlay - Promtail, Prometheus)
-resources:
-  - promtail-helmchart.yaml
-  - prometheus-helmchart.yaml
+  - harbor-helmchart.yaml
+  - postgresql-cluster.yaml
 
 # ❌ WRONG (causes Fleet errors)
 resources:
@@ -161,7 +122,7 @@ Base directories serve as:
 Fleet creates bundles with names based on the monitored path:
 
 - `harbor/overlays/nprd-apps` → `gitops-tools-nprd-apps-harbor-overlays-nprd-apps`
-- `grafana/overlays/nprd-apps` → `gitops-tools-nprd-apps-grafana-overlays-nprd-apps`
+- `gitlab-runner/overlays/nprd-apps` → `gitops-tools-nprd-apps-gitlab-runner-overlays-nprd-apps`
 
 ## Common Issues and Solutions
 
@@ -233,6 +194,5 @@ kubectl get all -n <namespace> -l app=<tool-name>
 
 All tools follow the overlay-only pattern:
 - ✅ **Harbor**: Working (overlay contains all files)
-- ✅ **GitHub Runner**: Working (overlay contains all files)
 - ✅ **GitLab Runner**: Working (overlay contains all files)
-- ✅ **Grafana Stack**: Working (overlay contains Helm charts and services)
+- ✅ **Authentik**: Working (prd-apps overlay)

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: grafana
-  labels:
-    name: grafana
-    purpose: observability-platform
-    app: monitoring
-    managed-by: gitops

@@ -64,53 +64,7 @@ Cluster registration token is invalid or expired.
 
 ---
 
-## Issue 3: Helm Namespace Adoption Failure
-
-### Symptoms
-
-- Bundle stuck: `Namespace "grafana" exists and cannot be imported: invalid ownership metadata`
-
-### Fix
-
-Add Helm metadata so Helm can adopt the existing namespace:
-
-```bash
-kubectl annotate namespace grafana \
-  meta.helm.sh/release-name=gitops-tools-nprd-apps-grafana-overlays-nprd-apps \
-  meta.helm.sh/release-namespace=grafana --overwrite
-kubectl label namespace grafana app.kubernetes.io/managed-by=Helm --overwrite
-```
-
----
-
-## Issue 4: Helm ClusterRole Adoption Failure
-
-### Symptoms
-
-- `ClusterRole "loki-clusterrole" exists and cannot be imported` (or grafana, promtail)
-
-### Fix
-
-**Option A – Adopt:** Patch annotations so Helm can adopt:
-```bash
-kubectl annotate clusterrole loki-clusterrole \
-  meta.helm.sh/release-name=loki meta.helm.sh/release-namespace=grafana --overwrite
-# Repeat for loki-clusterrolebinding, grafana-clusterrole, grafana-clusterrolebinding, promtail (role + binding)
-kubectl delete job -n grafana helm-install-loki helm-install-grafana helm-install-promtail
-```
-
-**Option B – Delete orphaned resources:**
-```bash
-kubectl delete clusterrole loki-clusterrole grafana-clusterrole promtail
-kubectl delete clusterrolebinding loki-clusterrolebinding grafana-clusterrolebinding promtail
-kubectl delete job -n grafana helm-install-loki helm-install-grafana helm-install-promtail
-```
-
-Do **not** delete ClusterRoles from other tools you still use.
-
----
-
-## Issue 5: Bundle Status Stale
+## Issue 3: Bundle Status Stale
 
 ### Fix
 
@@ -123,4 +77,3 @@ Do **not** delete ClusterRoles from other tools you still use.
 ## Related
 
 - [FLEET_STRUCTURE.md](FLEET_STRUCTURE.md) – GitOps paths and overlay pattern
-- [docs/grafana/README.md](grafana/README.md) – Grafana Fleet troubleshooting

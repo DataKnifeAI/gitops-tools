@@ -19,7 +19,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 - **Harbor**: Container image registry with DockerHub proxy cache
 - **GitHub Runner**: GitHub Actions self-hosted runners
 - **GitLab Runner**: GitLab CI/CD runners
-- **Loki Stack**: Log aggregation and visualization (Loki + Promtail + Grafana)
 - **Authentik**: SSO identity provider at `https://auth.dataknife.net` (prd-apps) — create secrets first, see [secrets/authentik/README.md](secrets/authentik/README.md)
 
 ## Structure
@@ -29,7 +28,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 ├── authentik/       # Authentik SSO identity provider (prd-apps)
 ├── harbor/          # Harbor registry deployment
 ├── gitlab-runner/   # GitLab CI/CD runners
-├── grafana/         # Grafana Stack (Loki + Promtail + Grafana)
 ├── scripts/         # Setup and utility scripts
 ├── secrets/         # Secret templates and examples
 └── docs/            # Detailed documentation
