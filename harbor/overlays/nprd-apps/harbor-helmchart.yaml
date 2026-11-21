@@ -5,7 +5,7 @@ metadata:
   namespace: harbor
 spec:
   chart: harbor
-  version: "1.19.1"
+  version: "1.19.4"
   repo: https://helm.goharbor.io
   targetNamespace: harbor
   valuesContent: |-
@@ -23,6 +23,9 @@ spec:
           nginx.ingress.kubernetes.io/ssl-redirect: "true"
           nginx.ingress.kubernetes.io/proxy-body-size: "0"
     externalURL: https://harbor.dataknife.net
+    # RWO PVCs (registry/jobservice) cannot RollingUpdate across nodes
+    updateStrategy:
+      type: Recreate
     # Harbor admin password - NOTE: Helm chart does NOT update existing admin passwords
     # The default password is "Harbor12345" and works after initial deployment
     # To change the password, use Harbor UI or API after deployment
