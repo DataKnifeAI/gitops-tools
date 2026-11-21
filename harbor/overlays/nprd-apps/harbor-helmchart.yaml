@@ -9,19 +9,12 @@ spec:
   repo: https://helm.goharbor.io
   targetNamespace: harbor
   valuesContent: |-
+    # HTTP exposure is HTTPRoute → traefik-gateway (see httproute.yaml).
     expose:
-      type: ingress
+      type: clusterIP
       tls:
-        enabled: true
-        certSource: none  # Use ingress controller default cert (Let's Encrypt wildcard)
-      ingress:
-        hosts:
-          core: harbor.dataknife.net
-          notary: notary.dataknife.net
-        className: nginx
-        annotations:
-          nginx.ingress.kubernetes.io/ssl-redirect: "true"
-          nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        enabled: false
+
     externalURL: https://harbor.dataknife.net
     # RWO PVCs (registry/jobservice) cannot RollingUpdate across nodes
     updateStrategy:

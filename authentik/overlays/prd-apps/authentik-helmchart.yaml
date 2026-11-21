@@ -42,14 +42,10 @@ spec:
           memory: 512Mi
         limits:
           memory: 1Gi
+      # HTTP exposure is HTTPRoute → traefik-gateway (see httproute.yaml).
       ingress:
-        enabled: true
-        ingressClassName: rke2-ingress-nginx-migration
-        hosts:
-          - auth.dataknife.net
-        tls:
-          - hosts:
-              - auth.dataknife.net
+        enabled: false
+
     worker:
       replicas: 1
       resources:
