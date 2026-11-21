@@ -44,7 +44,7 @@ spec:
           memory: 1Gi
       ingress:
         enabled: true
-        ingressClassName: nginx
+        ingressClassName: rke2-ingress-nginx-migration
         hosts:
           - auth.dataknife.net
         tls:
