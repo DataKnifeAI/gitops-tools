@@ -1,0 +1,21 @@
+---
+description: gitops-tools project-specific agent guidance
+alwaysApply: true
+---
+
+# GitOps Tools
+
+GitOps configs for managed Kubernetes tools (e.g. Harbor) on `nprd-apps` / `managed-tools`.
+
+Cursor uses `.cursor/rules/` (this file + org common). Legacy `.cursorrules` remains for other editors.
+
+## Key paths
+
+- `<tool>/base/` — generic manifests
+- `<tool>/overlays/<cluster>/` — cluster-specific overlays
+
+## Conventions
+
+- Kustomize base + overlays; declarative GitOps only
+- Always set requests/limits and useful labels (`app`, `managed-by`)
+- Never commit secrets; use external secret management
